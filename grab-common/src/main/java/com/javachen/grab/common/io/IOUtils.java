@@ -1,0 +1,181 @@
+package com.javachen.grab.common.io;
+
+import com.google.common.base.Preconditions;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.Closeable;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.ServerSocket;
+import java.nio.file.*;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.GZIPOutputStream;
+import java.util.zip.ZipInputStream;
+import java.util.zip.ZipOutputStream;
+
+/**
+ * I/O-related utility methods.
+ */
+public final class IOUtils {
+
+    private static final Logger log = LoggerFactory.getLogger(IOUtils.class);
+
+    private IOUtils() {
+    }
+
+    /**
+     * Deletes the given path, and if it is a directory, all files and subdirectories within it.
+     *
+     * @param rootDir directory to delete
+     * @throws java.io.IOException if any error occurs while deleting files or directories
+     */
+    public static void deleteRecursively(Path rootDir) throws IOException {
+        if (rootDir == null || !Files.exists(rootDir)) {
+            return;
+        }
+        Files.walkFileTree(rootDir, new SimpleFileVisitor<Path>() {
+            @Override
+            public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                Files.delete(file);
+                return FileVisitResult.CONTINUE;
+            }
+
+            @Override
+            public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
+                Files.delete(dir);
+                return FileVisitResult.CONTINUE;
+            }
+        });
+    }
+
+    /**
+     * Opens an {@link java.io.InputStream} to the file. If it appears to be compressed, because its
+     * file name ends in ".gz" or ".zip", then it will be decompressed accordingly.
+     *
+     * @param file file, possibly compressed, to open
+     * @return {@link java.io.InputStream} on uncompressed contents
+     * @throws IOException if the stream can't be opened or is invalid or can't be read
+     */
+    public static InputStream readMaybeCompressed(Path file) throws IOException {
+        String name = file.getFileName().toString();
+        InputStream in = Files.newInputStream(file);
+        if (name.endsWith(".gz")) {
+            return new GZIPInputStream(in);
+        }
+        if (name.endsWith(".zip")) {
+            return new ZipInputStream(in);
+        }
+        return in;
+    }
+
+    /**
+     * @param file file to read lines of, which may be compressed. It will be read using
+     *             UTF-8 encoding and assumes line separators consistent with {@link java.io.BufferedReader}
+     * @return an {@link Iterable} over the lines of the file
+     */
+    public static Iterable<String> readLines(Path file) {
+        return new LineIterable(file);
+    }
+
+    /**
+     * Opens an {@link java.io.OutputStream} to the file. If it should be compressed, because its
+     * file name ends in ".gz" or ".zip", then data written will be compressed accordingly.
+     *
+     * @param file       file, possibly compressed, to write to
+     * @param bufferSize suggested output buffer size in bytes
+     * @return {@link java.io.OutputStream} receiving uncompressed contents
+     * @throws IOException if the stream can't be opened or is invalid or can't be written
+     */
+    public static OutputStream writeMaybeCompressed(Path file, int bufferSize) throws IOException {
+        String name = file.getFileName().toString();
+        OutputStream out = Files.newOutputStream(file);
+        if (name.endsWith(".gz")) {
+            return new GZIPOutputStream(out, bufferSize);
+        }
+        if (name.endsWith(".zip")) {
+            return new ZipOutputStream(out);
+        }
+        return out;
+    }
+
+    /**
+     * @param dir  directory to list
+     * @param glob glob pattern for files that should be returned, which can span subdirectories
+     *             as in patterns like {@code * /*}
+     * @return {@link Path}s, including both files and directories, matching the glob pattern.
+     * No path containing an element whose name starts with "." is returned.
+     * Returned paths are also ordered lexicographically.
+     * @throws IOException if an error occurs while accessing the file system
+     */
+    public static List<Path> listFiles(Path dir, String glob) throws IOException {
+        Preconditions.checkArgument(Files.isDirectory(dir), "%s is not a directory", dir);
+
+        List<String> globLevels;
+        if (glob == null || glob.isEmpty()) {
+            globLevels = Collections.singletonList("*");
+        } else {
+            globLevels = Arrays.asList(glob.split("/"));
+        }
+        Preconditions.checkState(!globLevels.isEmpty());
+
+        List<Path> paths = new ArrayList<>();
+        paths.add(dir);
+
+        for (String globLevel : globLevels) {
+            List<Path> newPaths = new ArrayList<>();
+            for (Path existingPath : paths) {
+                if (Files.isDirectory(existingPath)) {
+                    try (DirectoryStream<Path> stream = Files.newDirectoryStream(existingPath, globLevel)) {
+                        for (Path path : stream) {
+                            if (!path.getFileName().toString().startsWith(".")) {
+                                newPaths.add(path);
+                            }
+                        }
+                    }
+                }
+            }
+            paths = newPaths;
+        }
+        Collections.sort(paths);
+        return paths;
+    }
+
+    /**
+     * Closes a {@link java.io.Closeable} and logs the exception, if any. This is only suitable for closing
+     * objects where a failure to close does not impact correctness -- for example, an input stream
+     * that is already fully read, but not an output stream which may fail when flushing final
+     * output.
+     *
+     * @param closeable thing to close
+     */
+    public static void closeQuietly(Closeable closeable) {
+        if (closeable != null) {
+            try {
+                closeable.close();
+            } catch (IOException e) {
+                log.warn("Unable to close", e);
+            }
+        }
+    }
+
+    /**
+     * Binds to a free ephemeral port, and then releases it. The returned port is quite likely
+     * to be free for use after this, but is not entirely guaranteed to be.
+     *
+     * @return a (probably) free ephemeral port
+     * @throws IOException if an error occurs while binding to a port
+     */
+    public static int chooseFreePort() throws IOException {
+        try (ServerSocket socket = new ServerSocket(0, 0)) {
+            return socket.getLocalPort();
+        }
+    }
+
+}
