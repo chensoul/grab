@@ -1,12 +1,11 @@
 package com.javachen.grab.common.lang;
 
 import com.google.common.base.Preconditions;
+import com.javachen.grab.common.io.IOUtils;
 
 import java.io.Closeable;
 import java.util.Deque;
 import java.util.LinkedList;
-
-import com.javachen.grab.common.io.IOUtils;
 
 /**
  * JVM-related utility methods.

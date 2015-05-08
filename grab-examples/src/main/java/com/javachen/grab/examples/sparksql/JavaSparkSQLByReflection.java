@@ -12,13 +12,9 @@ import java.io.Serializable;
 import java.util.Arrays;
 import java.util.List;
 
-/**
- * @author <a href="mailto:june.chan@foxmail.com">june</a>.
- * @date 2015-03-27 16:50.
- */
 public class JavaSparkSQLByReflection {
     public static void main(String[] args) throws Exception {
-        SparkConf sparkConf = new SparkConf().setAppName("JavaSparkSQL");
+        SparkConf sparkConf = new SparkConf().setAppName("JavaSparkSQLByReflection");
         JavaSparkContext ctx = new JavaSparkContext(sparkConf);
         SQLContext sqlCtx = new SQLContext(ctx);
 

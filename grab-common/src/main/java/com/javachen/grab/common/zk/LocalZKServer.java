@@ -1,5 +1,7 @@
 package com.javachen.grab.common.zk;
 
+import com.javachen.grab.common.io.IOUtils;
+import com.javachen.grab.common.lang.JVMUtils;
 import org.apache.zookeeper.server.DatadirCleanupManager;
 import org.apache.zookeeper.server.ServerCnxnFactory;
 import org.apache.zookeeper.server.ServerConfig;
@@ -15,9 +17,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Properties;
-
-import com.javachen.grab.common.io.IOUtils;
-import com.javachen.grab.common.lang.JVMUtils;
 
 
 /**

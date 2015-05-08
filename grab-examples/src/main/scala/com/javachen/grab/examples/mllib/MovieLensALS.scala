@@ -85,7 +85,7 @@ object MovieLensALS {
           |For example, the following command runs this app on a synthetic dataset:
           |
           | bin/spark-submit --class com.javachen.grab.examples.mllib.MovieLensALS \
-          |  examples/target/scala-*/spark-examples-*.jar \
+          |  examples/target/scala-*/grab-examples-*.jar \
           |  --rank 5 --numIterations 20 --lambda 1.0 \
           |  --userDataInput data/ml-1m/personalRatings.txt \
           |  data/ml-1m/ratings.dat

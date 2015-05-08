@@ -1,6 +1,5 @@
 package com.javachen.grab.examples.mllib
 
-import org.apache.spark
 import org.apache.spark.SparkContext
 
 /**
