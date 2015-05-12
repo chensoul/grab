@@ -6,7 +6,6 @@
 
 目前，系统包括四个模块：
 
-- grab-examples：spark的一些例子
 - grab-common：基础代码
 - grab-batch：批处理任务，一天运行一次
 - grab-web：web端，提供Restfull接口获取推荐结果
