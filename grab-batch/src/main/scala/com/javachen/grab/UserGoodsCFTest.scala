@@ -19,7 +19,9 @@ object UserGoodsCFTest {
     val sqlContext = new org.apache.spark.sql.SQLContext(sc)
 
     sqlContext.parquetFile("/logroot/user_goods_preference").registerTempTable("user_goods_preference")
-    val user_goods_preference = sqlContext.sql("SELECT * FROM user_goods_preference where user_id>0")
+    val user_goods_preference = sqlContext.sql("SELECT * FROM user_goods_preference where user_id>0 limit 10")
+
+    //user_goods_preference.map(t=>(t(0),t(1))).saveAsTextFile("/tmp/user_goods_preference")
 
     //user_goods_preference.collect().foreach(println)
 
@@ -66,15 +68,15 @@ object UserGoodsCFTest {
     // train models and evaluate them on the validation set
     val ranks = List(8, 12)
     val lambdas = List(0.1, 10.0)
-    val numIters = List(10, 20)
+    val numIterations = List(10, 20)
     var bestModel: Option[MatrixFactorizationModel] = None
     var bestValidationRmse = Double.MaxValue
     var bestRank = 0
     var bestLambda = -1.0
     var bestNumIter = -1
-    for (rank <- ranks; lambda <- lambdas; numIter <- numIters) {
+    for (rank <- ranks; lambda <- lambdas; numIter <- numIterations) {
       val model = ALS.train(training, rank, numIter, lambda)
-      val validationRmse = computeRmse(model, validation, false)
+      val validationRmse = computeRmse(model, validation)
       println("RMSE (validation) = " + validationRmse + " for the model trained with rank = "
         + rank + ", lambda = " + lambda + ", and numIter = " + numIter + ".")
       if (validationRmse < bestValidationRmse) {
@@ -87,7 +89,7 @@ object UserGoodsCFTest {
     }
 
     // evaluate the best model on the test set
-    val testRmse = computeRmse(bestModel.get, test, false)
+    val testRmse = computeRmse(bestModel.get, test)
 
     println("The best model was trained with rank = " + bestRank + " and lambda = " + bestLambda
       + ", and numIter = " + bestNumIter + ", and its RMSE on the test set is " + testRmse + ".")
@@ -102,15 +104,23 @@ object UserGoodsCFTest {
   }
 
   /** Compute RMSE (Root Mean Squared Error). */
-  def computeRmse(model: MatrixFactorizationModel, data: RDD[Rating], implicitPrefs: Boolean) = {
+  def computeRmse(model: MatrixFactorizationModel, data: RDD[Rating]) = {
+    val usersProducts = data.map { case Rating(user, product, rate) =>
+      (user, product)
+    }
 
-    def mapPredictedRating(r: Double) = if (implicitPrefs) math.max(math.min(r, 1.0), 0.0) else r
+    val predictions = model.predict(usersProducts).map { case Rating(user, product, rate) =>
+      ((user, product), rate)
+    }
 
-    val predictions: RDD[Rating] = model.predict(data.map(x => (x.user, x.product)))
-    val predictionsAndRatings = predictions.map { x =>
-      ((x.user, x.product), mapPredictedRating(x.rating))
-    }.join(data.map(x => ((x.user, x.product), x.rating))).values
-    math.sqrt(predictionsAndRatings.map(x => (x._1 - x._2) * (x._1 - x._2)).mean())
+    val ratesAndPreds = data.map { case Rating(user, product, rate) =>
+      ((user, product), rate)
+    }.join(predictions).sortByKey()
+
+    math.sqrt(ratesAndPreds.map { case ((user, product), (r1, r2)) =>
+      val err = (r1 - r2)
+      err * err
+    }.mean())
   }
 
 }

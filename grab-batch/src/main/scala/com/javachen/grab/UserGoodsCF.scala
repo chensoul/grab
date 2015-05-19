@@ -4,6 +4,10 @@ import org.apache.spark.mllib.recommendation.{ALS, MatrixFactorizationModel, Rat
 import org.apache.spark.rdd._
 import org.apache.spark.{SparkConf, SparkContext}
 
+import sys.process._
+
+//import org.apache.log4j.{Logger,Level}
+
 /**
  *
  * @author <a href="mailto:junechen@163.com">june</a>.
@@ -19,9 +23,9 @@ object UserGoodsCF {
     val sqlContext = new org.apache.spark.sql.SQLContext(sc)
 
     sqlContext.parquetFile("/logroot/user_goods_preference").registerTempTable("user_goods_preference")
-    val user_goods_preference = sqlContext.sql("SELECT * FROM user_goods_preference where user_id>0")
-
-    //user_goods_preference.collect().foreach(println)
+    //user_id: int, goods_id: int, visit_count: int, visit_time: int, visit_city_id: int, buy_count: int, buy_time: int, buy_city_id: int, avg_score: float, collect_count: int
+    val user_goods_preference = sqlContext.sql("SELECT * FROM user_goods_preference where user_id>0 limit 1000")
+    val user_citys=user_goods_preference.map(t=> (t(0).asInstanceOf[Int],t(4).asInstanceOf[Int])).distinct()
 
     //0,7,235,1431943216,0,null,null,null,null,null
     val ratings = user_goods_preference.map { t =>
@@ -43,37 +47,66 @@ object UserGoodsCF {
 
     //ratings.collect().foreach(println)
 
-    val numRatings = ratings.count()
-    val numUsers = ratings.map(_._2.user).distinct().count()
-    val numGoods = ratings.map(_._2.product).distinct().count()
-
-    println("Got " + numRatings + " ratings from "
-      + numUsers + " users on " + numGoods + "goods.")
-
-
-    val numPartitions = 4
-    val training = ratings.values.repartition(numPartitions).cache()
+    println("Got " + ratings.count() + " ratings from "
+      +  ratings.map(_._2.user).distinct().count() + " users on " + ratings.map(_._2.product).distinct().count() + "goods.")
 
     val rank = 12
-    val lambda = 0.1
-    val numIter = 20
-    val model = ALS.train(training, rank, numIter, lambda)
-    val testRmse = computeRmse(model, training, false)
+    val numIterations = 20
+    val lambda = 0.01
+    val numPartitions = 4
 
-    println("The model was trained with rank = " + rank + " and lambda = " + lambda
-      + ", and numIter = " + numIter + ", and its RMSE is " + testRmse + ".")
-  }
+    val training = ratings.values.repartition(numPartitions).cache()
+    val model = ALS.train(training, rank, numIterations, lambda)
 
-  /** Compute RMSE (Root Mean Squared Error). */
-  def computeRmse(model: MatrixFactorizationModel, data: RDD[Rating], implicitPrefs: Boolean) = {
+    val usersProducts = training.map { case Rating(user, product, rate) =>
+      (user, product)
+    }
 
-    def mapPredictedRating(r: Double) = if (implicitPrefs) math.max(math.min(r, 1.0), 0.0) else r
+    val predictions = model.predict(usersProducts).map { case Rating(user, product, rate) =>
+      ((user, product), rate)
+    }
 
-    val predictions: RDD[Rating] = model.predict(data.map(x => (x.user, x.product)))
-    val predictionsAndRatings = predictions.map { x =>
-      ((x.user, x.product), mapPredictedRating(x.rating))
-    }.join(data.map(x => ((x.user, x.product), x.rating))).values
-    math.sqrt(predictionsAndRatings.map(x => (x._1 - x._2) * (x._1 - x._2)).mean())
-  }
+    val ratesAndPreds = training.map { case Rating(user, product, rate) =>
+      ((user, product), rate)
+    }.join(predictions).sortByKey()
+
+    val RMSE = math.sqrt(ratesAndPreds.map { case ((user, product), (r1, r2)) =>
+      val err = (r1 - r2)
+      err * err
+    }.mean())
+
+    println(s"The model was trained with rank = $rank and lambda = $lambda, and numIter = $numIterations, and its RMSE is $RMSE.")
+
+
+    //确保只生成一个文件，并按用户排序
+    val formatedRatesAndPreds = ratesAndPreds.repartition(1).sortBy(_._1).map({
+      case ((user, product), (rate, pred)) => user + "\t" + product + "\t" + rate + "\t" + pred
+    })
+
+    "hadoop fs -rm -r /tmp/user_goods_rates".!
+    formatedRatesAndPreds.saveAsTextFile("/tmp/user_goods_rates")
+
+    //排序取10条，限制结果集为5，待确认代码是否正确
+    predictions.map( { case  ((user, product), rate)=> Rating(user, product, rate)}).sortBy(- _.rating).groupBy(_.user).map(x => x._2.take(2)).take(5)
+
+//    val result=user_citys.collect().map(t=> {
+//      try {
+//        val rs = model.recommendProducts(t._1, 10)
+//        var value = ""
+//
+//        rs.foreach(r => {
+//          //value = value + r.product + ":" + r.rating + ","
+//          value += r.product + ","
+//        })
+//        Array(t._1, t._2, value.substring(0, value.length - 2)).mkString("\t")
+//      }catch{
+//          case ex: java.util.NoSuchElementException =>{}
+//      }
+//    })
+//
+//    val resultRDD = sc.parallelize(result,1)//并行为1，hdfs上只生成一个文件
+//    resultRDD.saveAsTextFile("/tmp/user_goods_result")
+
+     }
 
 }
