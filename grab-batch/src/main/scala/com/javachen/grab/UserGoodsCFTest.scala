@@ -29,9 +29,9 @@ object UserGoodsCFTest {
       if (t(5).asInstanceOf[Int] > 0) score += 5 * 0.2 //购买
       if (t(9).asInstanceOf[Int] > 0) score += 5 * 0.1 //搜藏
       if (t(8).asInstanceOf[Double] > 0)
-        score = t(8).asInstanceOf[Double] * 0.9 //评论
+        score = t(8).asInstanceOf[Double] * 0.7 //评论
 
-      (t(3).asInstanceOf[Int],Rating(t(0).asInstanceOf[Int], t(1).asInstanceOf[Int], score))
+      (t(3).asInstanceOf[Int] % 10,Rating(t(0).asInstanceOf[Int], t(1).asInstanceOf[Int], score))
     }
 
     val numRatings = ratings.count()
@@ -55,9 +55,9 @@ object UserGoodsCFTest {
     println(s"Training: $numTraining, validation: $numValidation, test: $numTest")
 
     // train models and evaluate them on the validation set
-    val ranks = List(8, 12, 16)
-    val lambdas = List(0.01, 0.1, 10.0)
-    val numIterations = List(10, 20)
+    val ranks = List(8,12)
+    val lambdas = List(0.1, 1.0, 10.0)
+    val numIterations = List(20)
     var bestModel: Option[MatrixFactorizationModel] = None
     var bestValidationRmse = Double.MaxValue
     var bestRank = 0
@@ -66,7 +66,7 @@ object UserGoodsCFTest {
     for (rank <- ranks; lambda <- lambdas; numIter <- numIterations) {
       val model = ALS.train(training, rank, numIter, lambda)
       val validationRmse = computeRmse(model, validation)
-      println(s"RMSE (validation) = $validationRmse for the model trained with rank = $rank , lambda = $lambda , and numIter = $numIter .")
+      println(s"RMSE (validation) = $validationRmse for the model trained with rank = $rank, lambda = $lambda, and numIter = $numIter.")
 
       if (validationRmse < bestValidationRmse) {
         bestModel = Some(model)
@@ -80,7 +80,7 @@ object UserGoodsCFTest {
     // evaluate the best model on the test set
     val testRmse = computeRmse(bestModel.get, test)
 
-    println(s"The best model was trained with rank = $bestRank and lambda = $bestLambda , and numIter = $bestNumIter , and its RMSE on the test set is $testRmse .")
+    println(s"The best model was trained with rank = $bestRank and lambda = $bestLambda , and numIter = $bestNumIter, and its RMSE on the test set is $testRmse.")
 
     // create a naive baseline and compare it with the best model
     val meanRating = training.union(validation).map(_.rating).mean
@@ -102,7 +102,7 @@ object UserGoodsCFTest {
 
     val ratesAndPreds = data.map { case Rating(user, product, rate) =>
       ((user, product), rate)
-    }.join(predictions).sortByKey()
+    }.join(predictions)
 
     math.sqrt(ratesAndPreds.map { case ((user, product), (r1, r2)) =>
       val err = (r1 - r2)

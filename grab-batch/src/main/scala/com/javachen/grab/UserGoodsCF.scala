@@ -19,11 +19,12 @@ object UserGoodsCF {
     val conf = new SparkConf().setAppName("UserGoodsCF")
     conf.registerKryoClasses(Array(classOf[mutable.BitSet], classOf[Rating])).set("spark.kryoserializer.buffer.mb", "100")
     conf.set("spark.serializer","org.apache.spark.serializer.KryoSerializer")
-    conf.set("spark.akka.frameSize", "500m");
+    conf.set("spark.akka.frameSize", "500");
 
     val sc = new SparkContext(conf)
     val hc = new HiveContext(sc)
     Logger.getLogger("org.apache.spark").setLevel(Level.WARN)
+    Logger.getLogger("org.apache.hadoop").setLevel(Level.WARN)
     Logger.getLogger("org.eclipse.jetty.server").setLevel(Level.OFF)
 
     //表结构：user_id, goods_id, visit_count, visit_time, visit_city_id, buy_count, buy_time, buy_city_id, avg_score, collect_count
@@ -49,71 +50,84 @@ object UserGoodsCF {
     val lambda = 0.01
     val numPartitions = 4
     var start = System.currentTimeMillis()
-
     val training = ratings.repartition(numPartitions)
     val model = ALS.train(training, rank, numIterations, lambda)
     println("Train Time = " + (System.currentTimeMillis() - start) * 1.0 / 1000)
 
     // 2.预测评分
+    start = System.currentTimeMillis()
     val usersProducts = ratings.map { case Rating(user, product, rate) =>
       (user, product)
     }
 
-    //每个用户取前40个预测结果
+    val fetchNum=50
+    //对每个用户按评分取前50个预测结果
     val predictions = model.predict(usersProducts).map { case Rating(user, product, rate) =>
-        (user, (product, rate))}.groupByKey(4).map(t=>(t._1,t._2.toList.sortBy(x=> - x._2).take(40).map{case (goods_id,rate)=>goods_id}))
+      (user, (product, rate))}.groupByKey(numPartitions).map(t=>(t._1,t._2.toList.sortBy(x=> - x._2).take(fetchNum).map{case (goods_id,rate)=>goods_id}))
 
     val hot_goods_sql="select city_id,goods_id,total_amount from dw_recommender.hot_goods"
     val send_goods_sql="select goods_id from dw_recommender.hot_goods where city_id=9999 order by total_amount desc"
-    val online_goods_sql="select goods_id,sp_id from dw_recommender.online_goods"
+    val online_goods_sql="select distinct goods_id,sp_id from dw_recommender.online_goods"
 
-    val onlineGoodsRDD = hc.sql(online_goods_sql).map({t =>(t(0).asInstanceOf[Int],t(1).asInstanceOf[Int])})
-    val userCityRDD = userGoodsRDD.map(t => (t(0).asInstanceOf[Int], t(4).asInstanceOf[Int]))
-    //每个城市热销商品取20个
-    val hotGoodsRDD = hc.sql(hot_goods_sql).map(t => (t(0).asInstanceOf[Int],(t(1).asInstanceOf[Int],t(2).asInstanceOf[Int]))).groupByKey(4).map(t=>
-      (t._1,t._2.toList.sortBy(x=> - x._2).take(20).map{case (goods_id,total_num)=>goods_id} ))
-    //配送商品取20个
-    val sendGoods = sc.broadcast(hc.sql(send_goods_sql).map(t =>(t(0).asInstanceOf[Int])).take(20)).value
+    val onlineGoodsRDD= hc.sql(online_goods_sql).map {t =>(t(0).asInstanceOf[Int],t(1).asInstanceOf[Int])}
+    //对每个用户取最近购买的一个城市
+    val userCityRDD = userGoodsRDD.map(t => (t(0).asInstanceOf[Int], t(4).asInstanceOf[Int])).groupByKey(numPartitions).map{case (user_id,list)=>
+      (user_id,list.toList.last)
+    }
+
+    //每个城市热销商品取50个
+    val hotGoodsRDD = hc.sql(hot_goods_sql).map(t =>
+      (t(0).asInstanceOf[Int],(t(1).asInstanceOf[Int],t(2).asInstanceOf[Int]))).groupByKey(numPartitions).map(t=>
+      (t._1,t._2.toList.sortBy(x=> - x._2).take(fetchNum).map{case (goods_id,total_num)=>goods_id} ))
+    //配送商品取50个
+    val sendGoods = sc.broadcast(hc.sql(send_goods_sql).map(t =>(t(0).asInstanceOf[Int])).take(fetchNum)).value
     val onlineGoods= sc.broadcast(onlineGoodsRDD.collectAsMap()).value
 
-
-    //3.合并结果：推荐40个+热销商品20个+配送商品20个，并过滤下线的商品
-    start = System.currentTimeMillis()
-    var userRecommendations=predictions.join(userCityRDD).map({case (user_id,(list1,city_id))=>
+    //3.合并结果：推荐+热销商品+配送商品，只取在线商品并且一个商家只推一个商品
+    val userRecommendations=predictions.join(userCityRDD,1).map({case (user_id,(list1,city_id))=>
       (city_id,(user_id,list1))
-    }).join(hotGoodsRDD).map({case (city_id,((user_id,list1),list2))=>
-      var list=list1
-      list ++= list2
-      list ++= sendGoods
-
-      (user_id,city_id,list.filter(onlineGoods.contains(_))) //取在线商品
+    }).join(hotGoodsRDD,4).map({case (city_id,((user_id,list1),list2))=>
+      //推荐结果 + 热销商品 + 配送商品
+      val res= {list1 ++ list2 ++ sendGoods}
+      (user_id,city_id,filterGoods(res,onlineGoods))
     })
 
-    //4.去重：一个商家只推一个商品，最后取前40个结果
+    //对于不在推荐用户列表中的用户，补上推荐结果，统一设置user_id=0
+    userRecommendations.union(hotGoodsRDD.map{ case (city_id, list2) =>
+      //热销商品+配送商品
+      val res= { list2 ++ sendGoods }
+      (0,city_id,filterGoods(res,onlineGoods))
+    })
 
-    println("Not exist User Recommendation Time = " + (System.currentTimeMillis() - start) * 1.0 / 1000)
-
+    //保存结果
     "hadoop fs -rm -r /tmp/user_goods_rates".!
-    //userRecommendations.saveAsTextFile("/tmp/user_goods_rates")
+    userRecommendations.saveAsTextFile("/tmp/user_goods_rates")
+    println("User Recommendation Time = " + (System.currentTimeMillis() - start) * 1.0 / 1000)
 
     //5.保存推荐结果到redis
-
     ratings.unpersist()
 
     sc.stop()
+
+    println("All Done")
   }
 
   /**
-   * 去重，一个商家只推一个商品，并取40个结果
-   * @param sc
-   * @param recommendations
-   * @param onlineGoodsRDD
-   * @return
+   * 过滤商品，取在线商品并且一个商家只推一个商品
+   *
+   * @param res
+   * @param onlineGoods
+   * @return 返回前40条结果
    */
-  def removeDupplicate(sc:SparkContext,recommendations:List[Int],onlineGoodsRDD:RDD[(Int, Int)]): String ={
-    sc.parallelize(recommendations).map(goods_id=>(goods_id,1)).join(onlineGoodsRDD).map({
-      case (goods_id,(1, sp_id)) => (sp_id, goods_id)
-    }).groupBy(_._1).map({t=>t._2.take(1)}).map(_.head._2).collect().take(40).mkString(",")
+  def filterGoods(res:List[Int],onlineGoods:scala.collection.Map[Int,Int]): Iterable[Int] ={
+    var filtered=scala.collection.mutable.Map[Int,Int]()
+    res.foreach{ goods_id =>
+      if (onlineGoods.contains(goods_id) && !filtered.contains(onlineGoods.get(goods_id).get)){
+        //sp_id -> goods_id
+        filtered += onlineGoods.get(goods_id).get -> goods_id
+      }
+    }
+    filtered.values.take(40)
   }
 
 }
