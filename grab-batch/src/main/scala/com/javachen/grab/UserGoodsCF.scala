@@ -8,8 +8,6 @@ import org.apache.spark.{SparkConf, SparkContext}
 import scala.Option
 import scala.collection.mutable
 import scala.sys.process._
-import scala.collection.mutable.ArrayBuffer
-import java.io.FileWriter
 import org.apache.log4j.{Logger,Level}
 
 /**
@@ -17,7 +15,6 @@ import org.apache.log4j.{Logger,Level}
  */
 object UserGoodsCF {
   def main(args: Array[String]): Unit = {
-    // set up environment
     val conf = new SparkConf().setAppName("UserGoodsCF")
     conf.registerKryoClasses(Array(classOf[mutable.BitSet], classOf[Rating])).set("spark.kryoserializer.buffer.mb", "100")
     conf.set("spark.serializer","org.apache.spark.serializer.KryoSerializer")
@@ -25,6 +22,9 @@ object UserGoodsCF {
 
     val sc = new SparkContext(conf)
     val hc = new HiveContext(sc)
+    Logger.getLogger("org.apache.spark").setLevel(Level.WARN)
+    Logger.getLogger("org.apache.hadoop").setLevel(Level.WARN)
+    Logger.getLogger("org.eclipse.jetty.server").setLevel(Level.OFF)
 
     val rank = 12
     val numIterations = 20
@@ -32,34 +32,29 @@ object UserGoodsCF {
     val numPartitions = 4
     val fetchNum=50
 
-    Logger.getLogger("org.apache.spark").setLevel(Level.WARN)
-    Logger.getLogger("org.apache.hadoop").setLevel(Level.WARN)
-    Logger.getLogger("org.eclipse.jetty.server").setLevel(Level.OFF)
-
     //表结构：user_id,goods_id,visit_time,city_id,visit_count,buy_count,is_collect,avg_score
-    val data = hc.sql("select * from dw_rec.user_goods_preference")
-    val ratings = data.map { t =>
+    val data = hc.sql("select a.* from dw_rec.user_goods_preference a join ( select user_id,count(goods_id) cnt from " +
+      "dw_rec.user_goods_preference group by user_id having cnt >=10 and cnt <10000) b on a.user_id=b.user_id").map { t =>
       var score = 0.0
       if (t(4).asInstanceOf[Int] > 0) score += 5 * 0.3 //访问
       if (t(5).asInstanceOf[Int] > 0) score += 5 * 0.6 //购买
       if (t(6).asInstanceOf[Byte] > 0) score += 5 * 0.1 //搜藏
       if (t(7).asInstanceOf[Double] > 0)
         score = t(7).asInstanceOf[Double] //评论
-      Rating(t(0).asInstanceOf[Int], t(1).asInstanceOf[Int], score)
-    }.cache()
+      ((t(0).asInstanceOf[Int], t(3).asInstanceOf[Int]),Rating(t(0).asInstanceOf[Int], t(1).asInstanceOf[Int], score))
+    }
 
-    val userCityRDD: RDD[(Int, Int)] = data.map { t =>
-      (t(0).asInstanceOf[Int], t(3).asInstanceOf[Int])
-    }.groupByKey(numPartitions).map {case (user_id,list)=>
+    val userCitys: RDD[(Int, Int)] = data.keys.groupByKey(numPartitions).map {case (user_id,list)=>
       (user_id,list.toList.last) //对每个用户取最近的一个城市
     }
 
+    val ratings=data.values.cache()
     val users = ratings.map(_.user).distinct()
     val goods = ratings.map(_.product).distinct()
     println("Got "+ratings.count()+" ratings from "+users.count+" users on "+goods.count+" goods.")
 
     //1.训练模型
-    val splits = ratings.randomSplit(Array(0.8, 0.2), seed = 111l)
+    val splits = ratings.repartition(numPartitions).randomSplit(Array(0.8, 0.2), seed = 111l)
     val training = splits(0).repartition(numPartitions)
     val test = splits(1).repartition(numPartitions)
 
@@ -68,35 +63,25 @@ object UserGoodsCF {
     val model = ALS.train(training, rank, numIterations, lambda)
     println("Train Time = " + (System.currentTimeMillis() - start) * 1.0 / 1000)
 
+    //计算根均方差
+    val rmse=computeRmse(model,test)
+    println(s"RMSE = $rmse")
+
     // 2.给所有用户预测评分
-    val usersProducts = test.map { case Rating(user, product, rate) =>
-      (user, product)
-    }
-
     val candidates = test.map(_.user).distinct().cartesian(goods)
-    val predictions = model.predict(candidates).map { case Rating(user, product, rate) =>
-      ((user, product), rate)
-    }
-
-    //每个用户获取50个推荐结果
-    val userRecommends: RDD[(Int, List[Int])] = predictions.map { case ((user, product), rate) =>
+    var recommendsByUserTopN = model.predict(candidates).map { case Rating(user, product, rate) =>
       (user, (product, rate))
     }.groupByKey(numPartitions).map{case (user_id,list)=>
       (user_id,list.toList.sortBy {case (goods_id,rate)=> - rate}.take(fetchNum).map{case (goods_id,rate)=>goods_id})
     }
 
-    //计算根均方差
-    val rmse=computeRmse(model,test)
-    println(s"RMSE = $rmse")
+    //3.对推荐结果补齐数据、过滤、去重
+    start = System.currentTimeMillis()
+    handlResult(sc,hc,recommendsByUserTopN,userCitys,fetchNum,numPartitions)
+    println("User Recommendation Time = " + (System.currentTimeMillis() - start) * 1.0 / 1000)
 
-    //计算准确率和召回率
-    val groupData=userRecommends.join(usersProducts.groupByKey().map {case (k,v) => (k,v.toList)})
-    EvaluateResult.recallAndPrecisionAndF1(groupData,fetchNum)
 
-    //4.对推荐结果补齐数据、过滤、去重
-    handlResult(sc,hc,userRecommends,userCityRDD,fetchNum,numPartitions)
-
-    //5.保存推荐结果到redis
+    //4.保存推荐结果到redis
     ratings.unpersist()
 
     sc.stop()
@@ -104,7 +89,7 @@ object UserGoodsCF {
     println("All Done")
   }
 
-  def handlResult(sc:SparkContext,hc:HiveContext,userRecommends: RDD[(Int, List[Int])],userCityRDD: RDD[(Int, Int)],fetchNum:Int=50,numPartitions:Int=4)={
+  def handlResult(sc:SparkContext,hc:HiveContext,recommendsByUserTopN: RDD[(Int, List[Int])],userCitys: RDD[(Int, Int)],fetchNum:Int=50,numPartitions:Int=4)={
     val hot_goods_sql="select city_id,goods_id,total_amount from dw_rec.hot_goods"
     val send_goods_sql="select goods_id from dw_rec.hot_goods where city_id=9999 order by total_amount desc limit 100"
     val online_goods_sql="select distinct goods_id,sp_id from dw_rec.online_goods"
@@ -121,7 +106,7 @@ object UserGoodsCF {
     val onlineGoods= sc.broadcast(onlineGoodsRDD.collectAsMap()).value
 
     //合并结果
-    val lastUserRecommends=userRecommends.join(userCityRDD,1).map{case (user_id,(list1,city_id))=>
+    val lastUserRecommends=recommendsByUserTopN.join(userCitys,1).map{case (user_id,(list1,city_id))=>
       (city_id,(user_id,list1))
     }.join(hotGoodsRDD,4).map{case (city_id,((user_id,list1),list2))=>
       //推荐结果 + 热销商品 + 配送商品
@@ -136,12 +121,9 @@ object UserGoodsCF {
       (0,city_id,filterGoods(res,onlineGoods))
     }
 
-    val allRecommends=lastUserRecommends.union(otherUsersRecommends)
-
     //保存结果
     "hadoop fs -rm -r /tmp/user_goods_rates".!
-    allRecommends.saveAsTextFile("/tmp/user_goods_rates")
-    println("User Recommendation Time = " + (System.currentTimeMillis() - start) * 1.0 / 1000)
+    lastUserRecommends.union(otherUsersRecommends).saveAsTextFile("/tmp/user_goods_rates")
   }
 
   /**
@@ -180,7 +162,6 @@ object UserGoodsCF {
       val err = (r1 - r2)
       err * err
     }.mean())
-
   }
 
 }

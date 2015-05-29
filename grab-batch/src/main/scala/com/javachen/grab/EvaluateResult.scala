@@ -36,22 +36,21 @@ object EvaluateResult {
 
     val groupData=userRecommends.join(usersProducts.groupByKey().map {case (k,v) => (k,v.toList)})
 
-    val (hit, testNum, recNum) =
-      groupData.map{ case (user, (mItems, tItems)) =>
-        var count = 0
-        // 计算准确率：推荐命中商品数/实际推荐商品数, topN为推荐上限值
-        val precNum = mItems.length
-        for (i <- 0 until precNum)
-          if (tItems.contains(mItems(i)))
-            count += 1
-        (count, tItems.length, precNum) }.reduce( (t1, t2) => (t1._1 + t2._1, t1._2 + t2._2, t1._3 + t2._3) )
+    val (hit, testNum, recNum) = groupData.map{ case (user, (mItems, tItems)) =>
+      var count = 0
+      // 计算准确率：推荐命中商品数/实际推荐商品数, topN为推荐上限值
+      val precNum = mItems.length
+      for (i <- 0 until precNum)
+        if (tItems.contains(mItems(i)))
+          count += 1
+      (count, tItems.length, precNum) }.reduce( (t1, t2) => (t1._1 + t2._1, t1._2 + t2._2, t1._3 + t2._3) )
 
-    val recall: Double = hit * 1.0 / testNum
-    val precision: Double = hit * 1.0 / recNum
-    val f1: Double = 2 * recall * precision / (recall + precision)
+      val recall: Double = hit * 1.0 / testNum
+      val precision: Double = hit * 1.0 / recNum
+      val f1: Double = 2 * recall * precision / (recall + precision)
 
-    println(s"$hit,$testNum,$recNum")
-    (recall,precision,f1)
+      println(s"$hit,$testNum,$recNum")
+      (recall,precision,f1)
   }
 
   def recallAndPrecision(test:RDD[Rating],result:RDD[Rating]):Double = {
