@@ -165,7 +165,6 @@ object ScalaLocalALS {
     // (397,7.141158013610967),
     // (97,7.071089782695754))
 
-
     EvaluateResult.coverage(training,recommendsByUserTopN)
     EvaluateResult.popularity(training,recommendsByUserTopN)
     EvaluateResult.recallAndPrecisionAndF1(training,recommendsByUserTopN)

@@ -33,8 +33,9 @@ object UserGoodsCF {
     val fetchNum=50
 
     //表结构：user_id,goods_id,visit_time,city_id,visit_count,buy_count,is_collect,avg_score
-    val data = hc.sql("select a.* from dw_rec.user_goods_preference a join ( select user_id,count(goods_id) cnt from " +
-      "dw_rec.user_goods_preference group by user_id having cnt >=10 and cnt <10000) b on a.user_id=b.user_id").map { t =>
+    val data = hc.sql("select a.* from dw_rec.user_goods_preference a join ( " +
+      "select user_id,count(goods_id) cnt from dw_rec.user_goods_preference group by user_id having cnt >=10 and cnt <10000" +
+      ") b on a.user_id=b.user_id").map { t =>
       var score = 0.0
       if (t(4).asInstanceOf[Int] > 0) score += 5 * 0.3 //访问
       if (t(5).asInstanceOf[Int] > 0) score += 5 * 0.6 //购买
@@ -106,7 +107,7 @@ object UserGoodsCF {
     val onlineGoods= sc.broadcast(onlineGoodsRDD.collectAsMap()).value
 
     //合并结果
-    val lastUserRecommends=recommendsByUserTopN.join(userCitys,1).map{case (user_id,(list1,city_id))=>
+    val lastUserRecommends=(recommendsByUserTopN.join(userCitys, 1)).map{case (user_id,(list1,city_id))=>
       (city_id,(user_id,list1))
     }.join(hotGoodsRDD,4).map{case (city_id,((user_id,list1),list2))=>
       //推荐结果 + 热销商品 + 配送商品
