@@ -165,6 +165,15 @@ object ScalaLocalALS {
     // (397,7.141158013610967),
     // (97,7.071089782695754))
 
+    recommendsByUserTopN.foreachPartition(partitionOfRecords => {
+        partitionOfRecords.foreach(pair => {
+          val jedis = RedisClient.pool.getResource
+          jedis.set(pair._1.toString,pair._2.mkString(","))
+          jedis.close()
+        })
+      })
+
+
     EvaluateResult.coverage(training,recommendsByUserTopN)
     EvaluateResult.popularity(training,recommendsByUserTopN)
     EvaluateResult.recallAndPrecisionAndF1(training,recommendsByUserTopN)
