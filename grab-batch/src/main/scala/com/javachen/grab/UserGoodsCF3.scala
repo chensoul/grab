@@ -1,37 +1,39 @@
 package com.javachen.grab
 
-import java.util
-
 import org.apache.log4j.{Level, Logger}
-import org.apache.spark.broadcast.Broadcast
 import org.apache.spark.mllib.recommendation.{ALS, MatrixFactorizationModel, Rating}
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.hive.HiveContext
 import org.apache.spark.storage.StorageLevel
 import org.apache.spark.{SparkConf, SparkContext}
 
-import scala.collection.mutable
-import scala.sys.process._
-
 /**
- * 基于物品的协同过滤，用户和商品做笛卡尔连接，占用太多内存，程序无法运行
+ * 基于物品的协同过滤，依次多一百多万用户进行推荐，总共耗时太长
  */
-object UserGoodsCF2{
-
+object UserGoodsCF3 {
   def main(args: Array[String]): Unit = {
     val conf = new SparkConf().setAppName("UserGoodsCF")
     conf.set("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
-    conf.registerKryoClasses(Array(classOf[mutable.BitSet],classOf[(Int, Int)],classOf[Rating]))
-    conf.set("spark.kryoserializer.buffer.mb", "16")
-    //conf.set("spark.kryo.registrator", "MyRegistrator")
+    conf.set("spark.kryoserializer.buffer.mb", "64")
+    conf.set("spark.kryo.classesToRegister", "scala.collection.mutable.BitSet,scala.Tuple2,scala.Tuple1,org.apache.spark.mllib.recommendation.Rating")
     conf.set("spark.akka.frameSize", "500");
-
     val sc = new SparkContext(conf)
+
     val hc = new HiveContext(sc)
     Logger.getLogger("org.apache.spark").setLevel(Level.WARN)
-    Logger.getLogger("org.apache.hadoop").setLevel(Level.OFF)
+    Logger.getLogger("org.apache.hadoop").setLevel(Level.WARN)
     Logger.getLogger("org.eclipse.jetty.server").setLevel(Level.OFF)
 
+    val (training, userCitys) = preparation(hc)
+
+    recommend(hc, training, userCitys)
+
+    sc.stop()
+
+    println("All Done")
+  }
+
+  def preparation(hc: HiveContext) = {
     //表结构：user_id,goods_id,visit_time,city_id,visit_count,buy_count,is_collect,avg_score
     val ratings = hc.sql("select * from dw_rec.user_goods_preference_filter").map { t =>
       var score = 0.0
@@ -46,16 +48,19 @@ object UserGoodsCF2{
       ((t(0).asInstanceOf[Int], t(3).asInstanceOf[Int]), Rating(t(0).asInstanceOf[Int], t(1).asInstanceOf[Int], score))
     }.repartition(128)
 
-    val userCitys = ratings.keys.groupByKey().map { case (user, list) => (user, list.last) } //对每个用户取最近的一个城市
+    val userCitys = ratings.keys.groupByKey().map { case (user, list) => (user, list.last) }.collect() //对每个用户取最近的一个城市
     val training = ratings.values.setName("training").persist(StorageLevel.MEMORY_AND_DISK_SER)
 
+    (training, userCitys)
+  }
+
+  def recommend(hc: HiveContext, training: RDD[Rating], userCitys: Array[(Int, Int)]) = {
     val trainingUsers = training.map(_.user).distinct(4)
     val trainingGoods = training.map(_.product).distinct(4)
     var start = System.currentTimeMillis()
     println("Got " + training.count() + " ratings from " + trainingUsers.count + " users on " + trainingGoods.count + " goods. ")
     println("Count Time = " + (System.currentTimeMillis() - start) * 1.0 / 1000)
 
-    //1.训练模型
     val rank = 12
     val numIterations = 20
     val lambda = 0.01
@@ -63,64 +68,32 @@ object UserGoodsCF2{
     val model = ALS.trainImplicit(training, rank, numIterations, lambda, 1.0)
     println("Train Time = " + (System.currentTimeMillis() - start) * 1.0 / 1000)
 
-    // 2.给所有用户推荐在线的商品
-    val onlineGoodsSpRDD = hc.sql("select goods_id,sp_id from dw_rec.online_goods").map { t =>
+    val onlineGoodsSp = hc.sql("select goods_id,sp_id from dw_rec.online_goods").map { t =>
       (t(0).asInstanceOf[Int], t(1).asInstanceOf[Int])
-    }
-    val onlineGoodsSp= onlineGoodsSpRDD.collectAsMap() //TODO 广播变量
-    val onlineGoods= onlineGoodsSpRDD.map(_._1)
-    val hotGoodsRDD = hc.sql("select city_id,goods_id,total_amount from dw_rec.hot_goods").map { t =>
+    }.collectAsMap()
+    val hotGoods = hc.sql("select city_id,goods_id,total_amount from dw_rec.hot_goods").map { t =>
       (t(0).asInstanceOf[Int], (t(1).asInstanceOf[Int], t(2).asInstanceOf[Int]))
     }.groupByKey().map { case (city_id, list) =>
       (city_id, list.toArray.sortBy { case (goods_id, total_num) => -total_num }.take(30).map { case (goods_id, total_num) => goods_id })
-    }
-    val sendGoods = hotGoodsRDD.lookup(9999).head //配送商品，city=9999 TODO 广播变量
+    }.collectAsMap()
+    val sendGoods = hotGoods(9999) //配送商品，city=9999
 
-    val candidates = userCitys.map(_._1).cartesian(onlineGoods)
-    var recommendsTopN = model.predict(candidates).map { case Rating(user, product, rate) =>
-      (user, (product, rate))
-    }.groupByKey().map{case (user,list)=>
-      (user,list.toArray.sortBy {case (product,rate)=> - rate}.take(40).map{case (product,rate)=>product})
-    }
+    //关联上用户编号为0的用户：客户端通过user_id查询推荐结果，如果查询不到，则查询user_id=0的数据
+    val allUserCity = userCitys ++ hotGoods.keys.map { case city_id => (0, city_id) }
 
-    //3.对推荐结果补齐数据、过滤、去重
-    val recommendsTopNWithCity=recommendsTopN.join(userCitys)
-    val lastUserRecommends=recommendsTopNWithCity.map{case (user,(list1,city_id))=>
-      (city_id,(user,list1))
-    }.join(hotGoodsRDD).map{case (city_id,((user,list1),list2))=>
-      filterGoods(list1,list2,sendGoods,onlineGoodsSp)
-    }
-
-    //对其他没有被推荐的用户构造推荐列表：热销商品+配送商品
-    val otherUsersRecommends=hotGoodsRDD.map{ case (city_id, list2) =>
-      filterGoods(Array(),list2,sendGoods,onlineGoodsSp)
-    }
-
-    //保存结果
     start = System.currentTimeMillis()
-    "hadoop fs -rm -r /tmp/user_goods_rec".!
-    lastUserRecommends.union(otherUsersRecommends).saveAsTextFile("/tmp/user_goods_rec")
-    print("SaveAsTextFile Time = " + (System.currentTimeMillis() - start) * 1.0 / 1000)
+    var idx = 0
+    val someRecommendations = allUserCity.par.take(1000).map { case (user, city) =>
+      idx += 1
+      if (idx % 10 == 0) println("Finish " + idx)
 
-    //保存结果到redis
-    start = System.currentTimeMillis()
-    lastUserRecommends.union(otherUsersRecommends).foreachPartition(partitionOfRecords => {
-      var values=new util.HashMap[String,String]()
-      partitionOfRecords.foreach(pair => {
-//        val jedis = RedisClient.pool.getResource
-//        values = new util.HashMap[String,String]()
-//        values.put("city",pair._2.toString)
-//        values.put("rec",pair._3.mkString(","))
-//        jedis.hmset(pair._1.toString,values)
-//        jedis.close()
-      })
-    })
-    print("SaveToRedis Time = " + (System.currentTimeMillis() - start) * 1.0 / 1000)
-    ratings.unpersist()
+      val recommends = if (user > 0) model.recommendProducts(user, 40).map(_.product) else Array[Int]()
+      (user, city, filterGoods(recommends, hotGoods(city), sendGoods, onlineGoodsSp))
+    }
 
-    sc.stop()
+    println("Recommend Time = " + (System.currentTimeMillis() - start) * 1.0 / 1000)
 
-    print("All Done")
+    unpersist(model)
   }
 
   /**
@@ -140,6 +113,19 @@ object UserGoodsCF2{
     }
     filtered.values.mkString(",")
   }
+
+  def unpersist(model: MatrixFactorizationModel): Unit = {
+    // At the moment, it's necessary to manually unpersist the RDDs inside the model
+    // when done with it in order to make sure they are promptly uncached
+    model.userFeatures.unpersist()
+    model.productFeatures.unpersist()
+  }
+
+  //https://github.com/sryza/aas/blob/master/ch03-recommender/src/main/scala/com/cloudera/datascience/recommender/RunRecommender.scala
+  def evaluate() = {
+
+  }
+
   /** Compute RMSE (Root Mean Squared Error). */
   def computeRmse(model: MatrixFactorizationModel, data: RDD[Rating]) = {
     val usersProducts = data.map { case Rating(user, product, rate) =>
