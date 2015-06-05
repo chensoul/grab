@@ -20,16 +20,15 @@ object UserGoodsCFTest {
     val conf = new SparkConf().setAppName("UserGoodsCFTest")
     conf.registerKryoClasses(Array(classOf[mutable.BitSet], classOf[Rating])).set("spark.kryoserializer.buffer.mb", "100")
     conf.set("spark.serializer","org.apache.spark.serializer.KryoSerializer")
-    conf.set("spark.akka.frameSize", "500");
+    conf.set("spark.akka.frameSize", "50");//单位是MB
 
     val sc = new SparkContext(conf)
+
     val hc = new HiveContext(sc)
     Logger.getLogger("org.apache.spark").setLevel(Level.WARN)
     Logger.getLogger("org.eclipse.jetty.server").setLevel(Level.OFF)
 
-    val data = hc.sql("select a.* from dw_rec.user_goods_preference a join ( " +
-      "select user_id,count(goods_id) cnt from dw_rec.user_goods_preference group by user_id having cnt >=10 and cnt <10000" +
-      ") b on a.user_id=b.user_id").cache
+    val data = hc.sql("select * from dw_rec.user_goods_preference").cache
 
     val ratings = data.map { t =>
       var score = 0.0
@@ -45,7 +44,6 @@ object UserGoodsCFTest {
     val numRatings = ratings.count()
     val numUsers = ratings.map(_._2.user).distinct().count()
     val numGoods = ratings.map(_._2.product).distinct().count()
-    val result = numRatings % (numUsers * numGoods)
 
     println(s"Got $numRatings ratings from $numUsers users on $numGoods movies,"+())
 
