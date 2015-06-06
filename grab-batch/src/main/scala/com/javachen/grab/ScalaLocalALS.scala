@@ -1,12 +1,11 @@
 package com.javachen.grab
 
+import org.apache.log4j.{Level, Logger}
 import org.apache.spark.mllib.recommendation.{ALS, Rating}
-import org.apache.spark.rdd.RDD
 import org.apache.spark.{SparkConf, SparkContext}
 import org.jblas.DoubleMatrix
-import scala.sys.process._
 
-import org.apache.log4j.{Level, Logger}
+import scala.sys.process._
 
 
 /**

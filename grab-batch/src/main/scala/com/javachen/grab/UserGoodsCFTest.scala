@@ -1,10 +1,10 @@
 package com.javachen.grab
 
+import org.apache.log4j.{Level, Logger}
 import org.apache.spark.mllib.recommendation.{ALS, MatrixFactorizationModel, Rating}
 import org.apache.spark.rdd._
 import org.apache.spark.sql.hive.HiveContext
 import org.apache.spark.{SparkConf, SparkContext}
-import org.apache.log4j.{Logger,Level}
 
 import scala.collection.mutable
 

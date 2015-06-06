@@ -1,6 +1,6 @@
 package com.javachen.grab
 
-import org.apache.spark.mllib.recommendation.{ALS, MatrixFactorizationModel, Rating}
+import org.apache.spark.mllib.recommendation.Rating
 import org.apache.spark.rdd.RDD
 
 /**

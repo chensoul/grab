@@ -1,20 +1,13 @@
 package com.javachen.grab
 
-import java.util
-
 import org.apache.log4j.{Level, Logger}
-import org.apache.spark.broadcast.Broadcast
-import org.apache.spark.mllib.recommendation.{ALS, MatrixFactorizationModel, Rating}
-import org.apache.spark.rdd.RDD
+import org.apache.spark.mllib.recommendation.{ALS, Rating}
 import org.apache.spark.sql.hive.HiveContext
 import org.apache.spark.storage.StorageLevel
 import org.apache.spark.{SparkConf, SparkContext}
 
-import scala.collection.mutable
-import scala.sys.process._
-
 /**
- * 基于物品的协同过滤，用户和商品做笛卡尔连接，占用太多内存，程序无法运行
+ * 基于物品的协同过滤，一次遍历用户进行推荐
  */
 object UserGoodsCF2{
 
@@ -56,7 +49,7 @@ object UserGoodsCF2{
     // 3.训练模型
     val (rank,numIterations,lambda) = (12,20,0.01)
     start = System.currentTimeMillis()
-    val model = ALS.train(training, rank, numIterations, lambda)
+    val model = ALS.train(training, rank, numIterations, lambda,64)
     println("Train Time = " + (System.currentTimeMillis() - start) * 1.0 / 1000)
 
     training.unpersist()
@@ -67,7 +60,7 @@ object UserGoodsCF2{
     //对每个用户取最近的一个城市
     val userCitys = hc.sql("select distinct user_id,city_id from dw_rec.user_goods_preference").map { t =>
       (t(0).asInstanceOf[Int], t(1).asInstanceOf[Int])
-    }.reduceByKey((x,y)=>y).collectAsMap()
+    }.reduceByKey((x,y)=>y).collect()  //不能用collectAsMap，因为后面需要添加一个key有重复的集合
 
     //在线商品
     val onlineGoodsSp = hc.sql("select goods_id,sp_id from dw_rec.online_goods").map { t =>
@@ -80,17 +73,19 @@ object UserGoodsCF2{
     }.groupByKey().map { case (city, list) =>
       (city, list.toArray.sortBy { case (goods_id, total_num) => -total_num }.take(30).map { case (goods_id, total_num) => goods_id })
     }.collectAsMap()
-    val seedGoods=hotCityGoods(9999) //配送商品 city_id=9999
+    val sendGoods=hotCityGoods(9999) //配送商品 city_id=9999
 
     val otherUserCity=hotCityGoods.map({case (city,array)=>(0,city)}) //未推荐用户和城市映射
     val allUserCity= userCitys ++ otherUserCity
 
-    val recommendsTopN = allUserCity.map { case (user,city) =>
+    start = System.currentTimeMillis()
+    val recommendsTopN = allUserCity.take(10000).par.map { case (user,city) =>
       val recommendedProducts=model.recommendProducts(user, 40).map(_.product)
       val hotGoods =hotCityGoods.getOrElse(city,Array[Int]())
-      val toFilterGoods=recommendedProducts ++ hotGoods ++ seedGoods
+      val toFilterGoods=recommendedProducts ++ hotGoods ++ sendGoods
       (user,city,filterGoods(toFilterGoods,onlineGoodsSp).mkString(","))
     }
+    println("Recommend Time = " + (System.currentTimeMillis() - start) * 1.0 / 1000)
 
     sc.stop()
 
