@@ -1,4 +1,4 @@
-package com.javachen.grab
+package com.javachen.grab.spark
 
 import org.apache.log4j.{Level, Logger}
 import org.apache.spark.mllib.recommendation.{ALS, Rating}

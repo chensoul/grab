@@ -1,4 +1,4 @@
-package com.javachen.grab
+package com.javachen.grab.spark
 
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig
 import redis.clients.jedis.JedisPool
