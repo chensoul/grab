@@ -7,11 +7,17 @@ import org.apache.spark.{SparkConf, SparkContext}
 
 import scala.sys.process._
 
-object UserGoodsBoolPrefRun {
+/**
+ * 使用mahout基于物品的无偏好协同过滤
+ *
+ * 在mahout程序运行完成后，从mahout的输出目录读取推荐结果，对推荐结果补足数据、过滤去重，并将最后结果存入hdfs和redis
+ */
+object ItemBaseBoolCFAfter {
+  val recNum = 40
 
   def main(args: Array[String]): Unit = {
-    val filePath = "user_goods_recommend"
-    val conf = new SparkConf().setAppName("UserGoodsBoolPrefRun")
+    val filePath = "user_goods_bool_rec"
+    val conf = new SparkConf().setAppName("ItemBaseBoolCFAfter")
     val sc = new SparkContext(conf)
 
     val hc = new HiveContext(sc)
@@ -58,7 +64,7 @@ object UserGoodsBoolPrefRun {
       (user, city, filterGoods(toFilterGoods, onlineGoodsSpBD.value))
     }
 
-    "hadoop fs -rm -r /logroot/user_goods_recommend".!
+    "hadoop fs -rm -r /logroot/user_goods_bool_rec".!
     finalReults.map { case (user, city, productArray) =>
       user + "\t" + city + "\t" + productArray.mkString(",")
     }.saveAsTextFile("/logroot/"+filePath)
@@ -74,6 +80,7 @@ object UserGoodsBoolPrefRun {
     //      result.iterator
     //    }
 
+    sc.stop()
   }
 
   /**
@@ -83,7 +90,7 @@ object UserGoodsBoolPrefRun {
     var filtered = collection.Map[Int, Int]()
     var sp_id = -1
 
-    for (product <- toFilterGoods if (filtered.size < 40)) {
+    for (product <- toFilterGoods if (filtered.size < recNum)) {
       sp_id = onlineGoodsSp.get(product).getOrElse(-1)
       if (sp_id > 0 && !filtered.contains(sp_id)) {
         //sp_id -> goods_id
