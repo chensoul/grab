@@ -1,4 +1,4 @@
-package com.javachen.grab.spark
+package com.javachen.grab.spark.cf
 
 import org.apache.log4j.{Level, Logger}
 import org.apache.spark.mllib.recommendation.{ALS, MatrixFactorizationModel, Rating}
@@ -15,14 +15,13 @@ import scala.sys.process._
 
 
 /**
- * 基于物品的协同过滤
+ * 基于物品的协同过滤，矩阵相乘，内存占用太多
  */
-object UserGoodsCF {
-  case class Params(rank: Int = 12, numIterations: Int = 20, lambda: Double = 0.01,kryo: Boolean = false, trainBlocks: Int = -1, topk:Int=10)
+object ItemBaseCF {
 
   def main(args: Array[String]): Unit = {
     val defaultParams = Params()
-    val parser = new OptionParser[Params]("UserGoodsCF") {
+    val parser = new OptionParser[Params]("ItemBaseCF") {
       head("UserGoodsCF: an example app for ALS on Goods data.")
       opt[Int]("rank")
         .text(s"rank, default: ${defaultParams.rank}}")
@@ -149,17 +148,17 @@ object UserGoodsCF {
 
       var userFeatureMatrix = new DoubleMatrix(userFeaturesArray.toArray)
       var userRecommendationMatrix = userFeatureMatrix.mmul(productFeatureMatrixBroadcast.value)
-      var productArray=productArrayBroadcast.value
+      var productArray = productArrayBroadcast.value
       var mappedUserRecommendationArray = new ArrayBuffer[String](params.topk)
 
       // Extract ratings from the matrix
       for (i <- 0 until userArray.length) {
-        var ratingSet =  mutable.TreeSet.empty(Ordering.fromLessThan[(Int,Double)](_._2 > _._2))
+        var ratingSet = mutable.TreeSet.empty(Ordering.fromLessThan[(Int, Double)](_._2 > _._2))
         for (j <- 0 until productArray.length) {
-          var rating = (productArray(j), userRecommendationMatrix.get(i,j))
+          var rating = (productArray(j), userRecommendationMatrix.get(i, j))
           ratingSet += rating
         }
-        mappedUserRecommendationArray += userArray(i)+","+ratingSet.take(params.topk).mkString(",")
+        mappedUserRecommendationArray += userArray(i) + "," + ratingSet.take(params.topk).mkString(",")
       }
       mappedUserRecommendationArray.iterator
     }
@@ -249,4 +248,7 @@ object UserGoodsCF {
       err * err
     }.mean())
   }
+
+  case class Params(rank: Int = 12, numIterations: Int = 20, lambda: Double = 0.01, kryo: Boolean = false, trainBlocks: Int = -1, topk: Int = 10)
+
 }

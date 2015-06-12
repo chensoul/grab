@@ -1,4 +1,4 @@
-package com.javachen.grab.spark
+package com.javachen.grab.spark.cf
 
 import org.apache.log4j.{Level, Logger}
 import org.apache.spark.mllib.recommendation.{ALS, MatrixFactorizationModel, Rating}
@@ -15,12 +15,12 @@ import scala.collection.mutable
  * @author <a href="mailto:junechen@163.com">june</a>.
  *         2015-05-19 10:18
  */
-object UserGoodsCFTest {
+object ItemBaseCFTest {
   def main(args: Array[String]): Unit = {
-    val conf = new SparkConf().setAppName("UserGoodsCFTest")
+    val conf = new SparkConf().setAppName("ItemBaseCFTest")
     conf.registerKryoClasses(Array(classOf[mutable.BitSet], classOf[Rating])).set("spark.kryoserializer.buffer.mb", "100")
-    conf.set("spark.serializer","org.apache.spark.serializer.KryoSerializer")
-    conf.set("spark.akka.frameSize", "50");//单位是MB
+    conf.set("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
+    conf.set("spark.akka.frameSize", "50"); //单位是MB
 
     val sc = new SparkContext(conf)
 
@@ -38,14 +38,14 @@ object UserGoodsCFTest {
       if (t(7).asInstanceOf[Double] > 0)
         score = t(7).asInstanceOf[Double] //评论
 
-      (t(2).asInstanceOf[Int] % 10,Rating(t(0).asInstanceOf[Int], t(1).asInstanceOf[Int], score))
+      (t(2).asInstanceOf[Int] % 10, Rating(t(0).asInstanceOf[Int], t(1).asInstanceOf[Int], score))
     }
 
     val numRatings = ratings.count()
     val numUsers = ratings.map(_._2.user).distinct().count()
     val numGoods = ratings.map(_._2.product).distinct().count()
 
-    println(s"Got $numRatings ratings from $numUsers users on $numGoods movies,"+())
+    println(s"Got $numRatings ratings from $numUsers users on $numGoods movies," +())
 
     // split ratings into train (60%), validation (20%), and test (20%) based on the
     // last digit of the timestamp, add myRatings to train, and cache them
@@ -62,9 +62,9 @@ object UserGoodsCFTest {
     println(s"Training: $numTraining, validation: $numValidation, test: $numTest")
 
     // train models and evaluate them on the validation set
-    val ranks = List(8,12,20)
-    val lambdas = List(0.01,0.1,1.0)
-    val numIterations = List(10,20,40)
+    val ranks = List(8, 12, 20)
+    val lambdas = List(0.01, 0.1, 1.0)
+    val numIterations = List(10, 20, 40)
     var bestModel: Option[MatrixFactorizationModel] = None
     var bestValidationRmse = Double.MaxValue
     var bestRank = 0
@@ -72,7 +72,7 @@ object UserGoodsCFTest {
     var bestNumIter = -1
     for (rank <- ranks; lambda <- lambdas; numIter <- numIterations) {
       val model = ALS.train(training, rank, numIter, lambda)
-      val validationRmse = computeRmse(model,validation)
+      val validationRmse = computeRmse(model, validation)
       println(s"RMSE (validation) = $validationRmse for the model trained with rank = $rank, lambda = $lambda, and numIter = $numIter.")
 
       if (validationRmse < bestValidationRmse) {
