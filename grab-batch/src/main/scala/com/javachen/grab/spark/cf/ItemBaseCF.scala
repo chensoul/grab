@@ -67,7 +67,7 @@ object ItemBaseCF {
 
     val conf = new SparkConf().setAppName(s"UserGoodsCF with $params")
     if (params.kryo) {
-      conf.registerKryoClasses(Array(classOf[mutable.BitSet], classOf[Rating])).set("spark.kryoserializer.buffer.mb", "8")
+      conf.registerKryoClasses(Array(classOf[mutable.BitSet], classOf[Rating])).set("spark.kryoserializer.buffer.mb", "16")
     }
     val sc = new SparkContext(conf)
 

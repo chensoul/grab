@@ -20,8 +20,8 @@ object ScalaLocalALS {
     Logger.getLogger("org.eclipse.jetty.server").setLevel(Level.OFF)
 
     // 1. 加载并解析数据
-    val data = sc.textFile("/tmp/ml-1m/ratings.dat")
-    //    val data = sc.textFile("data/ml-1m/ratings.dat")
+    //val data = sc.textFile("/tmp/ml-1m/ratings.dat")
+    val data = sc.textFile("data/ml-1m/ratings.dat")
 
     val ratings = data.map(_.split("::") match { case Array(user, item, rate, ts) =>
       Rating(user.toInt, item.toInt, rate.toDouble)
