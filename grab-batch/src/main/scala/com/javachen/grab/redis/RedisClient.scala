@@ -7,18 +7,15 @@ import redis.clients.jedis.{JedisPoolConfig, JedisPool}
  * Created by <a href="mailto:junechen@163.com">june</a> on 2015-06-01 15:33.
  */
 object RedisClient extends Serializable {
-  //  val redisHost = "10.168.5.90"
-  //  val redisPort = 20000
 
-  val redisHost = "10.168.35.12"
-  val redisPort = 6379
+  // val redisHost = "localhost"
+  // val redisPort = 6379
+  // val redisTimeout = 3000
 
-  val redisTimeout = 3000
-
-  //  val envConf = ConfigFactory.load()
-  //  val redisHost = envConf.getString("redis.host")
-  //  val redisPort = envConf.getInt("redis.port")
-  //  val redisTimeout = envConf.getInt("redis.timeout")
+   val envConf = ConfigFactory.load()
+   val redisHost = envConf.getString("redis.host")
+   val redisPort = envConf.getInt("redis.port")
+   val redisTimeout = envConf.getInt("redis.timeout")
 
   lazy val config = new JedisPoolConfig()
   config.setMaxIdle(50)
