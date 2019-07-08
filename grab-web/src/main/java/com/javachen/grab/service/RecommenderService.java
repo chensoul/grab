@@ -1,7 +1,7 @@
 package com.javachen.grab.service;
 
+import com.javachen.grab.model.Recommendation;
 import com.javachen.grab.model.domain.*;
-import com.javachen.grab.model.recom.Recommendation;
 import com.javachen.grab.repository.*;
 import com.javachen.grab.utils.Constant;
 import org.elasticsearch.action.search.SearchResponse;
@@ -47,6 +47,10 @@ public class RecommenderService {
     // 协同过滤推荐【电影相似性】
     public List<Recommendation> findMovieCFRecs(Long mid, int maxItems) {
         MovieRecs movieRecs= movieRecsRepository.findByMid(mid);
+
+        if(movieRecs==null){
+            return new ArrayList<>();
+        }
         List<Recommendation> recommendations = movieRecs.getRecs();
         return recommendations.subList(0, maxItems > recommendations.size() ? recommendations.size() : maxItems);
     }
@@ -54,6 +58,10 @@ public class RecommenderService {
     // 协同过滤推荐【用户电影矩阵】
     public List<Recommendation> findUserCFRecs(Long uid, int maxItems) {
         UserRecs userRecs= userRecsRepository.findByUid(uid);
+        if(userRecs==null){
+            return new ArrayList<>();
+        }
+
         List<Recommendation> recommendations = userRecs.getRecs();
         return recommendations.subList(0, maxItems > recommendations.size() ? recommendations.size() : maxItems);
     }
@@ -69,6 +77,9 @@ public class RecommenderService {
     // 实时推荐
     public List<Recommendation> findStreamRecs(Long uid,int maxItems){
         StreamRecs streamRecs= streamRecsRepository.findByUid(uid);
+        if(streamRecs==null){
+            return new ArrayList<>();
+        }
         List<Recommendation> recommendations = streamRecs.getRecs();
         return recommendations.subList(0, maxItems > recommendations.size() ? recommendations.size() : maxItems);
     }

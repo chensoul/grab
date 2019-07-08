@@ -1,7 +1,7 @@
 package com.javachen.grab.model.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.javachen.grab.model.recom.Recommendation;
+import com.javachen.grab.model.Recommendation;
 import lombok.Data;
 import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;

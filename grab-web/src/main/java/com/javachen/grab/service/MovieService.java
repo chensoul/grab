@@ -1,7 +1,7 @@
 package com.javachen.grab.service;
 
 import com.javachen.grab.model.domain.Movie;
-import com.javachen.grab.model.recom.Recommendation;
+import com.javachen.grab.model.Recommendation;
 import com.javachen.grab.repository.MovieRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

@@ -1,24 +1,26 @@
-package com.javachen.grab.rest;
+package com.javachen.grab.controller;
 
+import com.javachen.grab.model.CommonResponse;
+import com.javachen.grab.model.Recommendation;
 import com.javachen.grab.model.domain.Movie;
 import com.javachen.grab.model.domain.Rating;
 import com.javachen.grab.model.domain.Tag;
 import com.javachen.grab.model.domain.User;
-import com.javachen.grab.model.recom.Recommendation;
 import com.javachen.grab.service.*;
 import com.javachen.grab.utils.Constant;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
 
 
-@RequestMapping("/rest/movie")
+@RequestMapping(value = "/rest/movie",produces = MediaType.APPLICATION_JSON_VALUE)
 @Controller
 @Slf4j
-public class MovieRestApi {
+public class MovieController {
 
     @Autowired
     private RecommenderService recommenderService;
@@ -37,16 +39,16 @@ public class MovieRestApi {
      * @return
      */
     // TODO: 2017/10/20  bug 混合推荐结果中，基于内容的推荐，基于MID，而非UID
-    @RequestMapping(value = "/guess", method = RequestMethod.GET )
+    @RequestMapping(value = "/guess",produces = MediaType.APPLICATION_JSON_VALUE, method = RequestMethod.GET )
     @ResponseBody
-    public List<Movie> getGuessMovies(@RequestParam("username")String username,@RequestParam("num")int num) {
+    public CommonResponse getGuessMovies(@RequestParam("username")String username,@RequestParam("num")int num) {
         User user = userService.findByUsername(username);
         List<Recommendation> recommendations = recommenderService.findHybridRecommendations(user.getUid(),num);
         if(recommendations.size()==0){
             String randomGenres = user.getPrefGenres().get(new Random().nextInt(user.getPrefGenres().size()));
             recommendations = recommenderService.getTopGenresRecommendations(randomGenres.split(" ")[0],num);
         }
-        return movieService.getHybirdRecommendeMovies(recommendations);
+        return CommonResponse.success(movieService.getHybirdRecommendeMovies(recommendations));
     }
 
     /**
@@ -55,59 +57,59 @@ public class MovieRestApi {
      * @param num
      * @return
      */
-    @RequestMapping(value = "/wish",method = RequestMethod.GET )
+    @RequestMapping(value = "/wish",produces = MediaType.APPLICATION_JSON_VALUE,method = RequestMethod.GET )
     @ResponseBody
-    public List<Movie> getWishMovies(@RequestParam("username")String username,@RequestParam("num")int num) {
+    public CommonResponse getWishMovies(@RequestParam("username")String username,@RequestParam("num")int num) {
         User user = userService.findByUsername(username);
         List<Recommendation> recommendations = recommenderService.findUserCFRecs(user.getUid(),num);
         if(recommendations.size()==0){
             String randomGenres = user.getPrefGenres().get(new Random().nextInt(user.getPrefGenres().size()));
             recommendations = recommenderService.getTopGenresRecommendations(randomGenres.split(" ")[0],num);
         }
-        return movieService.getRecommendeMovies(recommendations);
+        return CommonResponse.success(movieService.getRecommendeMovies(recommendations));
     }
 
     /**
      * 获取热门推荐
      * @return
      */
-    @RequestMapping(value = "/hot",  method = RequestMethod.GET )
+    @RequestMapping(value = "/hot", produces = MediaType.APPLICATION_JSON_VALUE, method = RequestMethod.GET )
     @ResponseBody
-    public List<Movie> getHotMovies(@RequestParam("num")int num) {
+    public CommonResponse getHotMovies(@RequestParam("num")int num) {
         List<Recommendation> recommendations = recommenderService.getHotRecommendations();
-        return movieService.getRecommendeMovies(recommendations);
+        return CommonResponse.success(movieService.getRecommendeMovies(recommendations));
     }
 
     /**
      * 获取投票最多的电影
      * @return
      */
-    @RequestMapping(value = "/rate",  method = RequestMethod.GET )
+    @RequestMapping(value = "/rate", produces = MediaType.APPLICATION_JSON_VALUE, method = RequestMethod.GET )
     @ResponseBody
-    public List<Movie> getRateMoreMovies(@RequestParam("num")int num) {
+    public CommonResponse getRateMoreMovies(@RequestParam("num")int num) {
         List<Recommendation> recommendations = recommenderService.getRateMoreRecommendations();
-        return movieService.getRecommendeMovies(recommendations);
+        return CommonResponse.success(movieService.getRecommendeMovies(recommendations));
     }
 
     /**
      * 获取新添加的电影
      * @return
      */
-    @RequestMapping(value = "/new",  method = RequestMethod.GET )
+    @RequestMapping(value = "/new", produces = MediaType.APPLICATION_JSON_VALUE, method = RequestMethod.GET )
     @ResponseBody
-    public List<Movie> getNewMovies() {
-        return movieService.getNewMovies();
+    public CommonResponse getNewMovies() {
+        return CommonResponse.success(movieService.getNewMovies());
     }
 
     /**
      * 获取电影详细页面相似的电影集合
      * @return
      */
-    @RequestMapping(value = "/same/{mid}",method = RequestMethod.GET )
+    @RequestMapping(value = "/same/{mid}",produces = MediaType.APPLICATION_JSON_VALUE,method = RequestMethod.GET )
     @ResponseBody
-    public List<Movie> getSameMovie(@PathVariable("mid")Long mid,@RequestParam("num")int num) {
+    public CommonResponse getSameMovie(@PathVariable("mid")Long mid,@RequestParam("num")int num) {
         List<Recommendation> recommendations = recommenderService.findMovieCFRecs(mid,num);
-        return movieService.getRecommendeMovies(recommendations);
+        return CommonResponse.success(movieService.getRecommendeMovies(recommendations));
     }
 
 
@@ -116,10 +118,10 @@ public class MovieRestApi {
      * @param mid
      * @return
      */
-    @RequestMapping(value = "/info/{mid}", method = RequestMethod.GET )
+    @RequestMapping(value = "/info/{mid}",produces = MediaType.APPLICATION_JSON_VALUE, method = RequestMethod.GET )
     @ResponseBody
-    public Movie getMovieInfo(@PathVariable("mid")Long mid) {
-        return movieService.findByMid(mid);
+    public CommonResponse getMovieInfo(@PathVariable("mid")Long mid) {
+        return CommonResponse.success(movieService.findByMid(mid));
     }
 
     /**
@@ -127,9 +129,9 @@ public class MovieRestApi {
      * @param query
      * @return
      */
-    @RequestMapping(value = "/search",method = RequestMethod.GET )
+    @RequestMapping(value = "/search",produces = MediaType.APPLICATION_JSON_VALUE,method = RequestMethod.GET )
     @ResponseBody
-    public List<Movie> getSearchMovies(@RequestParam("query")String query) {
+    public CommonResponse getSearchMovies(@RequestParam("query")String query) {
 //        List<Recommendation> recommendations = recommenderService.getContentBasedSearchRecommendations(new SearchRecommendationRequest(query,100));
 //        model.addAttribute("success",true);
 //        model.addAttribute("movies",movieService.getRecommendeMovies(recommendations));
@@ -156,9 +158,9 @@ public class MovieRestApi {
      * @param username
      * @return
      */
-    @RequestMapping(value = "/myrate", method = RequestMethod.GET )
+    @RequestMapping(value = "/myrate",produces = MediaType.APPLICATION_JSON_VALUE, method = RequestMethod.GET )
     @ResponseBody
-    public List<Movie>  getMyRateMovies(@RequestParam("username")String username) {
+    public CommonResponse  getMyRateMovies(@RequestParam("username")String username) {
         User user = userService.findByUsername(username);
         List<Rating> ratings=ratingService.findAllByUid(user.getUid());
 
@@ -173,53 +175,53 @@ public class MovieRestApi {
             movie.setScore(scores.getOrDefault(movie.getMid(),movie.getScore()));
         }
 
-        return movies;
+        return CommonResponse.success(movies);
     }
 
 
-    @RequestMapping(value = "/rate/{mid}",  method = RequestMethod.GET )
+    @RequestMapping(value = "/rate/{mid}",produces = MediaType.APPLICATION_JSON_VALUE,  method = RequestMethod.GET )
     @ResponseBody
-    public Rating rateToMovie(@PathVariable("mid")Long mid,@RequestParam("score")Double score,@RequestParam("username")String username) {
+    public CommonResponse rateToMovie(@PathVariable("mid")Long mid,@RequestParam("score")Double score,@RequestParam("username")String username) {
         User user = userService.findByUsername(username);
         Rating rating = new Rating(user.getUid(),mid,score);
         ratingService.newRating(rating);
         //埋点日志
         System.out.print("=========complete=========");
         log.info(Constant.MOVIE_RATING_PREFIX + ":" + user.getUid() +"|"+ mid +"|"+ score +"|"+ System.currentTimeMillis()/1000);
-        return rating;
+        return CommonResponse.success(rating);
     }
 
 
-    @RequestMapping(value = "/tag/{mid}",method = RequestMethod.GET )
+    @RequestMapping(value = "/tag/{mid}",produces = MediaType.APPLICATION_JSON_VALUE,method = RequestMethod.GET )
     @ResponseBody
-    public List<Tag> getMovieTags(@PathVariable("mid")Long mid) {
-        return tagService.findAllByMid(mid);
+    public CommonResponse getMovieTags(@PathVariable("mid")Long mid) {
+        return CommonResponse.success(tagService.findAllByMid(mid));
     }
 
-    @RequestMapping(value = "/mytag/{mid}", method = RequestMethod.GET )
+    @RequestMapping(value = "/mytag/{mid}",produces = MediaType.APPLICATION_JSON_VALUE, method = RequestMethod.GET )
     @ResponseBody
-    public List<Tag> getMyTags(@PathVariable("mid")Long mid, @RequestParam("username")String username) {
+    public CommonResponse getMyTags(@PathVariable("mid")Long mid, @RequestParam("username")String username) {
         User user = userService.findByUsername(username);
-        return tagService.findAllByUidAndMid(user.getUid(),mid);
+        return CommonResponse.success(tagService.findAllByUidAndMid(user.getUid(),mid));
     }
 
-    @RequestMapping(value = "/newtag/{mid}", method = RequestMethod.GET )
+    @RequestMapping(value = "/newtag/{mid}",produces = MediaType.APPLICATION_JSON_VALUE, method = RequestMethod.GET )
     @ResponseBody
-    public Tag addMyTags(@PathVariable("mid")Long mid,@RequestParam("tagname")String tagname,@RequestParam("username")String username) {
+    public CommonResponse addMyTags(@PathVariable("mid")Long mid,@RequestParam("tagname")String tagname,@RequestParam("username")String username) {
         User user = userService.findByUsername(username);
         Tag tag = new Tag(user.getUid(),mid,tagname);
         tagService.newTag(tag);
-        return tag;
+        return CommonResponse.success(tag);
     }
 
-    @RequestMapping(value = "/stat", method = RequestMethod.GET )
+    @RequestMapping(value = "/stat", produces = MediaType.APPLICATION_JSON_VALUE,method = RequestMethod.GET )
     @ResponseBody
-    public int[] getMyRatingStat(@RequestParam("username")String username) {
+    public CommonResponse getMyRatingStat(@RequestParam("username")String username) {
         User user = userService.findByUsername(username);
         if(user!=null){
-            return ratingService.getMyRatingStat(user.getUid());
+            return CommonResponse.success(ratingService.getMyRatingStat(user.getUid()));
         }
-        return null;
+        return CommonResponse.error("没有数据");
     }
 
 }

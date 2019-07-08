@@ -16,13 +16,13 @@ public class UserService {
 
 
     @Transactional
-    public void registerUser(RegisterUserRequest request){
+    public User registerUser(RegisterUserRequest request){
         User user = new User();
         user.setUsername(request.getUsername());
         user.setPassword(request.getPassword());
         user.setFirst(true);
         user.setTimestamp(System.currentTimeMillis());
-        userRepository.save(user);
+        return userRepository.save(user);
     }
 
     public User loginUser(LoginUserRequest request){

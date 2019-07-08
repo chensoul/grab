@@ -1,4 +1,4 @@
-package com.javachen.grab.rest;
+package com.javachen.grab.controller;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;

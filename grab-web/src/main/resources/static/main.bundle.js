@@ -111,7 +111,7 @@ webpackJsonp([1], {
     /***/ "../../../../../src/app/app.component.html":
     /***/ (function (module, exports) {
 
-        module.exports = "<header>\n\n  <div [hidden]=\"isLogin()\" class=\"loginHead row\">\n    <div class=\"col-md-6 col-lg-offset-4\">\n      <img src=\"assets/logo-white.svg\" width=\"180\" height=\"35\" alt=\"MovieLens\">\n    </div>\n\n  </div>\n\n  <nav class=\"navbar navbar-default navbar-fixed-top header-panel\" [hidden]=\"!isLogin()\">\n    <div class=\"container-fluid\">\n      <!-- Brand and toggle get grouped for better mobile display -->\n\n      <div  class=\"row\">\n        <div class=\"col-md-8 col-md-offset-2\">\n          <div class=\"navbar-header\">\n            <a class=\"navbar-brand\" routerLink=\"/home\" routerLinkActive=\"active\">\n              <img alt=\"Brand\" src=\"assets/logo.png\">\n            </a>\n          </div>\n\n          <!-- Collect the nav links, forms, and other content for toggling -->\n          <div class=\"collapse navbar-collapse\" id=\"bs-example-navbar-collapse-1\">\n            <ul class=\"nav navbar-nav\">\n              <li class=\"dropdown\">\n                <a href=\"#\" class=\"dropdown-toggle\" data-toggle=\"dropdown\" role=\"button\" aria-haspopup=\"true\" aria-expanded=\"false\">快速链接 <span class=\"caret\"></span></a>\n                <ul class=\"dropdown-menu\">\n                  <li><a routerLink=\"/home\" routerLinkActive=\"active\">首页</a></li>\n                  <li><a [routerLink]=\"['/explore', { type: 'guess' }]\" >实时推荐</a></li>\n                  <li><a [routerLink]=\"['/explore', { type: 'wish' }]\" >离线推荐</a></li>\n                  <li><a [routerLink]=\"['/explore', { type: 'hot' }]\" >热门推荐</a></li>\n                  <li><a [routerLink]=\"['/explore', { type: 'rate' }]\" >评分最多</a></li>\n                  <li><a [routerLink]=\"['/explore', { type: 'new' }]\" >最新电影</a></li>\n                </ul>\n              </li>\n              <li class=\"dropdown\">\n                <a href=\"#\" class=\"dropdown-toggle\" data-toggle=\"dropdown\" role=\"button\" aria-haspopup=\"true\" aria-expanded=\"false\">用户空间 <span class=\"caret\"></span></a>\n                <ul class=\"dropdown-menu\">\n                  <li><a [routerLink]=\"['/explore', { type: 'myrate' }]\" >影片评分</a></li>\n                  <li><a [routerLink]=\"['/chart']\" >图表可视化</a></li>\n                </ul>\n              </li>\n              <li class=\"dropdown\">\n                <a href=\"#\" class=\"dropdown-toggle\" data-toggle=\"dropdown\" role=\"button\" aria-haspopup=\"true\" aria-expanded=\"false\">影片类别 <span class=\"caret\"></span></a>\n                <ul class=\"dropdown-menu\">\n                  <li><a [routerLink]=\"['/explore', { type: 'genres',category:'action' }]\" >动作片</a></li>\n                  <li><a [routerLink]=\"['/explore', { type: 'genres',category:'adventure' }]\" >冒险经历</a></li>\n                  <li><a [routerLink]=\"['/explore', { type: 'genres',category:'animation' }]\" >动画片</a></li>\n                  <li><a [routerLink]=\"['/explore', { type: 'genres',category:'comedy' }]\" >喜剧</a></li>\n                  <li><a [routerLink]=\"['/explore', { type: 'genres',category:'crime' }]\" >犯罪</a></li>\n                  <li><a [routerLink]=\"['/explore', { type: 'genres',category:'documentary' }]\" >纪录片</a></li>\n                  <li><a [routerLink]=\"['/explore', { type: 'genres',category:'drama' }]\" >喜剧文学</a></li>\n                  <li><a [routerLink]=\"['/explore', { type: 'genres',category:'family' }]\" >家庭片</a></li>\n                  <li><a [routerLink]=\"['/explore', { type: 'genres',category:'fantasy' }]\" >魔幻</a></li>\n                  <li><a [routerLink]=\"['/explore', { type: 'genres',category:'foreign' }]\" >外国片</a></li>\n                  <li><a [routerLink]=\"['/explore', { type: 'genres',category:'history' }]\" >历史片</a></li>\n                  <li><a [routerLink]=\"['/explore', { type: 'genres',category:'horror' }]\" >恐怖片</a></li>\n                  <li><a [routerLink]=\"['/explore', { type: 'genres',category:'music' }]\" >音乐片</a></li>\n                  <li><a [routerLink]=\"['/explore', { type: 'genres',category:'mystery' }]\" >悬疑片</a></li>\n                  <li><a [routerLink]=\"['/explore', { type: 'genres',category:'romance' }]\" >爱情片</a></li>\n                  <li><a [routerLink]=\"['/explore', { type: 'genres',category:'science fiction' }]\" >科幻片</a></li>\n                  <li><a [routerLink]=\"['/explore', { type: 'genres',category:'tv movie' }]\" >电视电影</a></li>\n                  <li><a [routerLink]=\"['/explore', { type: 'genres',category:'thriller' }]\" >惊悚片</a></li>\n                  <li><a [routerLink]=\"['/explore', { type: 'genres',category:'war' }]\" >战争片</a></li>\n                  <li><a [routerLink]=\"['/explore', { type: 'genres',category:'western' }]\" >西部片</a></li>\n                </ul>\n              </li>\n            </ul>\n            <form class=\"navbar-form navbar-left\">\n              <div class=\"form-group\">\n                <input type=\"text\" class=\"form-control\" placeholder=\"Search\" style=\"width:400px\" name=\"query\" (keypress)=\"enterPress($event)\" [(ngModel)]=\"query\">\n              </div>\n              <button type=\"submit\" class=\"btn btn-default\"><span class=\"glyphicon glyphicon-search\" aria-hidden=\"true\" (click)=\"search()\"></span></button>\n            </form>\n            <ul class=\"nav navbar-nav navbar-right\">\n              <li class=\"dropdown\">\n                <a href=\"#\" class=\"dropdown-toggle\" data-toggle=\"dropdown\" role=\"button\" aria-haspopup=\"true\" aria-expanded=\"false\"><span class=\"glyphicon glyphicon-bell\" aria-hidden=\"true\"></span><span class=\"caret\"></span></a>\n              </li>\n              <li class=\"dropdown\">\n                <a href=\"#\" class=\"dropdown-toggle\" data-toggle=\"dropdown\" role=\"button\" aria-haspopup=\"true\" aria-expanded=\"false\"><span class=\"glyphicon glyphicon-user\" aria-hidden=\"true\"></span><span class=\"caret\"></span></a>\n                <ul class=\"dropdown-menu\">\n                  <li><a href=\"#\" style=\"color: #d35113;font-weight: 700;\">{{login.user.username}}</a></li>\n                  <li role=\"separator\" class=\"divider\"></li>\n                  <li><a routerLink=\"/login\" routerLinkActive=\"active\" (click)=\"logout()\">退出登录</a></li>\n                </ul>\n              </li>\n            </ul>\n          </div><!-- /.navbar-collapse -->\n        </div>\n      </div>\n    </div><!-- /.container-fluid -->\n  </nav>\n\n</header>\n\n\n<div class=\"container-fluid content\">\n  <div  class=\"row\">\n    <div class=\"col-md-8 col-md-offset-2\">\n\n      <router-outlet></router-outlet>\n\n    </div>\n  </div>\n</div>\n\n<footer [hidden]=\"!isLogin()\">\n  <div class=\"container-fluid\">\n    <div  class=\"row\">\n\n\n\n      <div class=\"col-md-4 col-lg-offset-2\">\n        <h3 style=\"margin-top: 10px;font-weight: 600\">MovieLens - 海外电影推荐系统</h3>\n        <p>@ 北京晟程华科教育科技有限公司</p>\n      </div>\n\n\n      <div class=\"col-md-4\">\n        <img src=\"assets/sgg.png\" height=\"70px\" class=\"img-rounded\" style=\"float: right\">\n      </div>\n\n    </div>\n  </div>\n</footer>\n"
+        module.exports = "<header>\n\n  <div [hidden]=\"isLogin()\" class=\"loginHead row\">\n    <div class=\"col-md-6 col-lg-offset-4\">\n      <img src=\"assets/logo-white.svg\" width=\"180\" height=\"35\" alt=\"MovieLens\">\n    </div>\n\n  </div>\n\n  <nav class=\"navbar navbar-default navbar-fixed-top header-panel\" [hidden]=\"!isLogin()\">\n    <div class=\"container-fluid\">\n      <!-- Brand and toggle get grouped for better mobile display -->\n\n      <div  class=\"row\">\n        <div class=\"col-md-8 col-md-offset-2\">\n          <div class=\"navbar-header\">\n            <a class=\"navbar-brand\" routerLink=\"/home\" routerLinkActive=\"active\">\n              <img alt=\"Brand\" src=\"assets/logo.png\">\n            </a>\n          </div>\n\n          <!-- Collect the nav links, forms, and other content for toggling -->\n          <div class=\"collapse navbar-collapse\" id=\"bs-example-navbar-collapse-1\">\n            <ul class=\"nav navbar-nav\">\n              <li class=\"dropdown\">\n                <a href=\"#\" class=\"dropdown-toggle\" data-toggle=\"dropdown\" role=\"button\" aria-haspopup=\"true\" aria-expanded=\"false\">快速链接 <span class=\"caret\"></span></a>\n                <ul class=\"dropdown-menu\">\n                  <li><a routerLink=\"/home\" routerLinkActive=\"active\">首页</a></li>\n                  <li><a [routerLink]=\"['/explore', { type: 'guess' }]\" >实时推荐</a></li>\n                  <li><a [routerLink]=\"['/explore', { type: 'wish' }]\" >离线推荐</a></li>\n                  <li><a [routerLink]=\"['/explore', { type: 'hot' }]\" >热门推荐</a></li>\n                  <li><a [routerLink]=\"['/explore', { type: 'rate' }]\" >评分最多</a></li>\n                  <li><a [routerLink]=\"['/explore', { type: 'new' }]\" >最新电影</a></li>\n                </ul>\n              </li>\n              <li class=\"dropdown\">\n                <a href=\"#\" class=\"dropdown-toggle\" data-toggle=\"dropdown\" role=\"button\" aria-haspopup=\"true\" aria-expanded=\"false\">用户空间 <span class=\"caret\"></span></a>\n                <ul class=\"dropdown-menu\">\n                  <li><a [routerLink]=\"['/explore', { type: 'myrate' }]\" >影片评分</a></li>\n                  <li><a [routerLink]=\"['/chart']\" >图表可视化</a></li>\n                </ul>\n              </li>\n              <li class=\"dropdown\">\n                <a href=\"#\" class=\"dropdown-toggle\" data-toggle=\"dropdown\" role=\"button\" aria-haspopup=\"true\" aria-expanded=\"false\">影片类别 <span class=\"caret\"></span></a>\n                <ul class=\"dropdown-menu\">\n                  <li><a [routerLink]=\"['/explore', { type: 'genres',category:'action' }]\" >动作片</a></li>\n                  <li><a [routerLink]=\"['/explore', { type: 'genres',category:'adventure' }]\" >冒险经历</a></li>\n                  <li><a [routerLink]=\"['/explore', { type: 'genres',category:'animation' }]\" >动画片</a></li>\n                  <li><a [routerLink]=\"['/explore', { type: 'genres',category:'comedy' }]\" >喜剧</a></li>\n                  <li><a [routerLink]=\"['/explore', { type: 'genres',category:'crime' }]\" >犯罪</a></li>\n                  <li><a [routerLink]=\"['/explore', { type: 'genres',category:'documentary' }]\" >纪录片</a></li>\n                  <li><a [routerLink]=\"['/explore', { type: 'genres',category:'drama' }]\" >喜剧文学</a></li>\n                  <li><a [routerLink]=\"['/explore', { type: 'genres',category:'family' }]\" >家庭片</a></li>\n                  <li><a [routerLink]=\"['/explore', { type: 'genres',category:'fantasy' }]\" >魔幻</a></li>\n                  <li><a [routerLink]=\"['/explore', { type: 'genres',category:'foreign' }]\" >外国片</a></li>\n                  <li><a [routerLink]=\"['/explore', { type: 'genres',category:'history' }]\" >历史片</a></li>\n                  <li><a [routerLink]=\"['/explore', { type: 'genres',category:'horror' }]\" >恐怖片</a></li>\n                  <li><a [routerLink]=\"['/explore', { type: 'genres',category:'music' }]\" >音乐片</a></li>\n                  <li><a [routerLink]=\"['/explore', { type: 'genres',category:'mystery' }]\" >悬疑片</a></li>\n                  <li><a [routerLink]=\"['/explore', { type: 'genres',category:'romance' }]\" >爱情片</a></li>\n                  <li><a [routerLink]=\"['/explore', { type: 'genres',category:'science fiction' }]\" >科幻片</a></li>\n                  <li><a [routerLink]=\"['/explore', { type: 'genres',category:'tv movie' }]\" >电视电影</a></li>\n                  <li><a [routerLink]=\"['/explore', { type: 'genres',category:'thriller' }]\" >惊悚片</a></li>\n                  <li><a [routerLink]=\"['/explore', { type: 'genres',category:'war' }]\" >战争片</a></li>\n                  <li><a [routerLink]=\"['/explore', { type: 'genres',category:'western' }]\" >西部片</a></li>\n                </ul>\n              </li>\n            </ul>\n            <form class=\"navbar-form navbar-left\">\n              <div class=\"form-group\">\n                <input type=\"text\" class=\"form-control\" placeholder=\"Search\" style=\"width:400px\" name=\"query\" (keypress)=\"enterPress($event)\" [(ngModel)]=\"query\">\n              </div>\n              <button type=\"submit\" class=\"btn btn-default\"><span class=\"glyphicon glyphicon-search\" aria-hidden=\"true\" (click)=\"search()\"></span></button>\n            </form>\n            <ul class=\"nav navbar-nav navbar-right\">\n              <li class=\"dropdown\">\n                <a href=\"#\" class=\"dropdown-toggle\" data-toggle=\"dropdown\" role=\"button\" aria-haspopup=\"true\" aria-expanded=\"false\"><span class=\"glyphicon glyphicon-bell\" aria-hidden=\"true\"></span><span class=\"caret\"></span></a>\n              </li>\n              <li class=\"dropdown\">\n                <a href=\"#\" class=\"dropdown-toggle\" data-toggle=\"dropdown\" role=\"button\" aria-haspopup=\"true\" aria-expanded=\"false\"><span class=\"glyphicon glyphicon-user\" aria-hidden=\"true\"></span><span class=\"caret\"></span></a>\n                <ul class=\"dropdown-menu\">\n                  <li><a href=\"#\" style=\"color: #d35113;font-weight: 700;\">{{login.user.username}}</a></li>\n                  <li role=\"separator\" class=\"divider\"></li>\n                  <li><a routerLink=\"/login\" routerLinkActive=\"active\" (click)=\"logout()\">退出登录</a></li>\n                </ul>\n              </li>\n            </ul>\n          </div><!-- /.navbar-collapse -->\n        </div>\n      </div>\n    </div><!-- /.container-fluid -->\n  </nav>\n\n</header>\n\n\n<div class=\"container-fluid content\">\n  <div  class=\"row\">\n    <div class=\"col-md-8 col-md-offset-2\">\n\n      <router-outlet></router-outlet>\n\n    </div>\n  </div>\n</div>"
 
         /***/
     }),
@@ -345,7 +345,7 @@ webpackJsonp([1], {
             ChartComponent.prototype.ngOnInit = function () {
                 var _this = this;
                 this.httpService
-                    .get(__WEBPACK_IMPORTED_MODULE_3__model_constant__["a" /* constant */].BUSSINESS_SERVER_URL + 'rest/movie/stat?username=' + this.loginService.user.username)
+                    .get(__WEBPACK_IMPORTED_MODULE_3__model_constant__["a" /* constant */].BUSSINESS_SERVER_URL + '/rest/movie/stat?username=' + this.loginService.user.username)
                     .subscribe(function (data) {
                         if (data['success'] == true) {
                             _this.option = {
@@ -384,7 +384,7 @@ webpackJsonp([1], {
                                         name: '电影个数',
                                         type: 'bar',
                                         barWidth: '60%',
-                                        data: data['stat']
+                                        data: data['data']
                                     }
                                 ]
                             };
@@ -509,7 +509,7 @@ webpackJsonp([1], {
             ExploreComponent.prototype.getMyRateMovies = function () {
                 var _this = this;
                 this.httpService
-                    .get(__WEBPACK_IMPORTED_MODULE_4__model_constant__["a" /* constant */].BUSSINESS_SERVER_URL + 'rest/movie/myrate?username=' + this.loginService.user.username)
+                    .get(__WEBPACK_IMPORTED_MODULE_4__model_constant__["a" /* constant */].BUSSINESS_SERVER_URL + '/rest/movie/myrate?username=' + this.loginService.user.username)
                     .subscribe(function (data) {
                         if (data['success'] == true) {
                             _this.movies = data['movies'];
@@ -521,7 +521,7 @@ webpackJsonp([1], {
             ExploreComponent.prototype.getGenresMovies = function (category) {
                 var _this = this;
                 this.httpService
-                    .get(__WEBPACK_IMPORTED_MODULE_4__model_constant__["a" /* constant */].BUSSINESS_SERVER_URL + 'rest/movie/search?query=' + category)
+                    .get(__WEBPACK_IMPORTED_MODULE_4__model_constant__["a" /* constant */].BUSSINESS_SERVER_URL + '/rest/movie/search?query=' + category)
                     .subscribe(function (data) {
                         if (data['success'] == true) {
                             _this.movies = data['movies'];
@@ -534,7 +534,7 @@ webpackJsonp([1], {
                 var _this = this;
                 console.log(query);
                 this.httpService
-                    .get(__WEBPACK_IMPORTED_MODULE_4__model_constant__["a" /* constant */].BUSSINESS_SERVER_URL + 'rest/movie/search?query=' + query)
+                    .get(__WEBPACK_IMPORTED_MODULE_4__model_constant__["a" /* constant */].BUSSINESS_SERVER_URL + '/rest/movie/search?query=' + query)
                     .subscribe(function (data) {
                         if (data['success'] == true) {
                             _this.movies = data['movies'];
@@ -546,7 +546,7 @@ webpackJsonp([1], {
             ExploreComponent.prototype.getGuessMovies = function () {
                 var _this = this;
                 this.httpService
-                    .get(__WEBPACK_IMPORTED_MODULE_4__model_constant__["a" /* constant */].BUSSINESS_SERVER_URL + 'rest/movie/guess?num=100&username=' + this.loginService.user.username)
+                    .get(__WEBPACK_IMPORTED_MODULE_4__model_constant__["a" /* constant */].BUSSINESS_SERVER_URL + '/rest/movie/guess?num=100&username=' + this.loginService.user.username)
                     .subscribe(function (data) {
                         if (data['success'] == true) {
                             _this.movies = data['movies'];
@@ -558,7 +558,7 @@ webpackJsonp([1], {
             ExploreComponent.prototype.getHotMovies = function () {
                 var _this = this;
                 this.httpService
-                    .get(__WEBPACK_IMPORTED_MODULE_4__model_constant__["a" /* constant */].BUSSINESS_SERVER_URL + 'rest/movie/hot?num=100&username=' + this.loginService.user.username)
+                    .get(__WEBPACK_IMPORTED_MODULE_4__model_constant__["a" /* constant */].BUSSINESS_SERVER_URL + '/rest/movie/hot?num=100&username=' + this.loginService.user.username)
                     .subscribe(function (data) {
                         if (data['success'] == true) {
                             _this.movies = data['movies'];
@@ -570,7 +570,7 @@ webpackJsonp([1], {
             ExploreComponent.prototype.getNewMovies = function () {
                 var _this = this;
                 this.httpService
-                    .get(__WEBPACK_IMPORTED_MODULE_4__model_constant__["a" /* constant */].BUSSINESS_SERVER_URL + 'rest/movie/new?num=100&username=' + this.loginService.user.username)
+                    .get(__WEBPACK_IMPORTED_MODULE_4__model_constant__["a" /* constant */].BUSSINESS_SERVER_URL + '/rest/movie/new?num=100&username=' + this.loginService.user.username)
                     .subscribe(function (data) {
                         if (data['success'] == true) {
                             _this.movies = data['movies'];
@@ -582,10 +582,10 @@ webpackJsonp([1], {
             ExploreComponent.prototype.getRateMoreMovies = function () {
                 var _this = this;
                 this.httpService
-                    .get(__WEBPACK_IMPORTED_MODULE_4__model_constant__["a" /* constant */].BUSSINESS_SERVER_URL + 'rest/movie/rate?num=100&username=' + this.loginService.user.username)
+                    .get(__WEBPACK_IMPORTED_MODULE_4__model_constant__["a" /* constant */].BUSSINESS_SERVER_URL + '/rest/movie/rate?num=100&username=' + this.loginService.user.username)
                     .subscribe(function (data) {
                         if (data['success'] == true) {
-                            _this.movies = data['movies'];
+                            _this.movies = data['data'];
                         }
                     }, function (err) {
                         console.log('Somethi,g went wrong!');
@@ -594,10 +594,10 @@ webpackJsonp([1], {
             ExploreComponent.prototype.getWishMovies = function () {
                 var _this = this;
                 this.httpService
-                    .get(__WEBPACK_IMPORTED_MODULE_4__model_constant__["a" /* constant */].BUSSINESS_SERVER_URL + 'rest/movie/wish?num=100&username=' + this.loginService.user.username)
+                    .get(__WEBPACK_IMPORTED_MODULE_4__model_constant__["a" /* constant */].BUSSINESS_SERVER_URL + '/rest/movie/wish?num=100&username=' + this.loginService.user.username)
                     .subscribe(function (data) {
                         if (data['success'] == true) {
-                            _this.movies = data['movies'];
+                            _this.movies = data['data'];
                         }
                     }, function (err) {
                         console.log('Somethi,g went wrong!');
@@ -789,7 +789,7 @@ webpackJsonp([1], {
                 });
                 prefGenres = prefGenres.slice(0, prefGenres.length - 1);
                 this.httpService
-                    .get(__WEBPACK_IMPORTED_MODULE_4__model_constant__["a" /* constant */].BUSSINESS_SERVER_URL + 'rest/users/pref?username=' + this.loginService.user.username + "&genres=" + prefGenres)
+                    .get(__WEBPACK_IMPORTED_MODULE_4__model_constant__["a" /* constant */].BUSSINESS_SERVER_URL + '/rest/users/pref?username=' + this.loginService.user.username + "&genres=" + prefGenres)
                     .subscribe(function (data) {
                         if (data['success'] == true) {
                             _this.loginService.user.first = false;
@@ -805,10 +805,10 @@ webpackJsonp([1], {
             HomeComponent.prototype.getGuessMovies = function () {
                 var _this = this;
                 this.httpService
-                    .get(__WEBPACK_IMPORTED_MODULE_4__model_constant__["a" /* constant */].BUSSINESS_SERVER_URL + 'rest/movie/guess?num=6&username=' + this.loginService.user.username)
+                    .get(__WEBPACK_IMPORTED_MODULE_4__model_constant__["a" /* constant */].BUSSINESS_SERVER_URL + '/rest/movie/guess?num=6&username=' + this.loginService.user.username)
                     .subscribe(function (data) {
                         if (data['success'] == true) {
-                            _this.guessMovies = data['movies'];
+                            _this.guessMovies = data['data'];
                         }
                     }, function (err) {
                         console.log('Somethi,g went wrong!');
@@ -817,10 +817,10 @@ webpackJsonp([1], {
             HomeComponent.prototype.getHotMovies = function () {
                 var _this = this;
                 this.httpService
-                    .get(__WEBPACK_IMPORTED_MODULE_4__model_constant__["a" /* constant */].BUSSINESS_SERVER_URL + 'rest/movie/hot?num=6&username=' + this.loginService.user.username)
+                    .get(__WEBPACK_IMPORTED_MODULE_4__model_constant__["a" /* constant */].BUSSINESS_SERVER_URL + '/rest/movie/hot?num=6&username=' + this.loginService.user.username)
                     .subscribe(function (data) {
                         if (data['success'] == true) {
-                            _this.hotMovies = data['movies'];
+                            _this.hotMovies = data['data'];
                             /*
                             angular.forEach(movies, function(data){
                               var movie = new Movie;
@@ -858,10 +858,10 @@ webpackJsonp([1], {
                 this.newMovies.push(movie);
                 this.newMovies.push(movie);*/
                 this.httpService
-                    .get(__WEBPACK_IMPORTED_MODULE_4__model_constant__["a" /* constant */].BUSSINESS_SERVER_URL + 'rest/movie/new?num=6&username=' + this.loginService.user.username)
+                    .get(__WEBPACK_IMPORTED_MODULE_4__model_constant__["a" /* constant */].BUSSINESS_SERVER_URL + '/rest/movie/new?num=6&username=' + this.loginService.user.username)
                     .subscribe(function (data) {
                         if (data['success'] == true) {
-                            _this.newMovies = data['movies'];
+                            _this.newMovies = data['data'];
                         }
                     }, function (err) {
                         console.log('Something went wrong!');
@@ -870,10 +870,10 @@ webpackJsonp([1], {
             HomeComponent.prototype.getRateMoreMovies = function () {
                 var _this = this;
                 this.httpService
-                    .get(__WEBPACK_IMPORTED_MODULE_4__model_constant__["a" /* constant */].BUSSINESS_SERVER_URL + 'rest/movie/rate?num=6&username=' + this.loginService.user.username)
+                    .get(__WEBPACK_IMPORTED_MODULE_4__model_constant__["a" /* constant */].BUSSINESS_SERVER_URL + '/rest/movie/rate?num=6&username=' + this.loginService.user.username)
                     .subscribe(function (data) {
                         if (data['success'] == true) {
-                            _this.rateMoreMovies = data['movies'];
+                            _this.rateMoreMovies = data['data'];
                         }
                     }, function (err) {
                         console.log('Somethi,g went wrong!');
@@ -882,10 +882,10 @@ webpackJsonp([1], {
             HomeComponent.prototype.getWishMovies = function () {
                 var _this = this;
                 this.httpService
-                    .get(__WEBPACK_IMPORTED_MODULE_4__model_constant__["a" /* constant */].BUSSINESS_SERVER_URL + 'rest/movie/wish?num=6&username=' + this.loginService.user.username)
+                    .get(__WEBPACK_IMPORTED_MODULE_4__model_constant__["a" /* constant */].BUSSINESS_SERVER_URL + '/rest/movie/wish?num=6&username=' + this.loginService.user.username)
                     .subscribe(function (data) {
                         if (data['success'] == true) {
-                            _this.wishMovies = data['movies'];
+                            _this.wishMovies = data['data'];
                         }
                     }, function (err) {
                         console.log('Somethi,g went wrong!');
@@ -1011,7 +1011,7 @@ webpackJsonp([1], {
     /***/ "../../../../../src/app/mdetail/mdetail.component.html":
     /***/ (function (module, exports) {
 
-        module.exports = "<div class=\"detail\">\n\n  <div class=\"main row\">\n    <div class=\"col-md-5\">\n      <img src=\"{{imageServer}}images/{{movie.mid}}/picture.jpg\" class=\"img-thumbnail\">\n    </div>\n    <div class=\"col-md-7\">\n      <h1 class=\"title\">{{movie.name}}</h1>\n\n      <div class=\"menu\" style=\"float: left\">\n        <div class=\"btn-group\">\n          <button type=\"button\" style=\"background-color: #FFFFFF;border: none;padding-left: 1px\" class=\"btn btn-default dropdown-toggle btn-sm\" data-toggle=\"dropdown\" aria-haspopup=\"true\" aria-expanded=\"false\">\n            <span class=\"icon-stack2\" aria-hidden=\"true\" style=\"font-size: 20px\"></span>\n          </button>\n          <ul class=\"dropdown-menu\">\n            <li><a href=\"#\">清除评分</a></li>\n          </ul>\n        </div>\n      </div>\n\n      <app-star [currentValue]=\"movie.score\" [mid]=\"movie.mid\"></app-star>\n\n      <div class=\"row\"></div>\n\n      <div class=\"row\">\n        <div class=\"col-md-4\">\n          <h4 class=\"small-title\">平均评分</h4>\n          <p>{{movie.score}} 颗星</p>\n        </div>\n\n      </div>\n\n      <div class=\"row\">\n\n        <div class=\"col-md-8\">\n          <h4 class=\"small-title\">影片类别</h4>\n          <p>{{movie.genres}}</p>\n        </div>\n      </div>\n\n    </div>\n  </div>\n\n  <div class=\"second row\">\n    <div class=\"col-md-6\">\n      <h2 style=\"margin-top: 0px;\">{{movie.descri}}</h2>\n    </div>\n    <div class=\"col-md-6\">\n      <p>{{movie.shoot}} G {{movie.timelong}}</p>\n      <h4 class=\"small-title\">影片语言</h4>\n      <p>{{movie.language}}</p>\n      <h4 class=\"small-title\">影片导演</h4>\n      <p>{{movie.directors}}</p>\n      <h4 class=\"small-title\">影片演员</h4>\n      <p>{{movie.actors}}</p>\n      <h4 class=\"small-title\">影片上映日期</h4>\n      <p>{{movie.issue}}</p>\n    </div>\n\n  </div>\n\n  <h3><span class=\"icon-pin4\" aria-hidden=\"true\" style=\"font-size: 20px;\"></span> 我的标签</h3>\n  <div class=\"row youtag\">\n    <div class=\"col-md-4\">\n      <div class=\"input-group\">\n        <input #tagname type=\"text\" class=\"form-control\" placeholder=\"Search for...\">\n        <span class=\"input-group-btn\">\n        <button class=\"btn btn-default\" type=\"button\" (click)=\"addMyTag(movie.mid,tagname.value)\"><span class=\"glyphicon glyphicon-plus\" aria-hidden=\"true\"></span></button>\n      </span>\n      </div><!-- /input-group -->\n    </div>\n  </div>\n\n  <div class=\"row\">\n    <div class=\"col-md-2\" *ngFor=\"let myTag of myTags\" style=\"margin-bottom: 10px\">\n      <div class=\"btn-group btn-group-sm\" role=\"group\" aria-label=\"...\">\n        <button type=\"button\" class=\"btn btn-default\">{{myTag.tag}}</button>\n        <button type=\"button\" class=\"btn btn-default\" (click)=\"removeMyTag(myTag.mid)\"><span class=\"glyphicon glyphicon-remove\" aria-hidden=\"true\"></span></button>\n      </div>\n    </div>\n  </div>\n\n  <h3><span class=\"glyphicon glyphicon-bullhorn\" aria-hidden=\"true\" style=\"font-size: 20px\"></span> 大家的标签</h3>\n  <div class=\"grid grid-pad\">\n    <div class=\"row\">\n      <div class=\"col-md-2\" *ngFor=\"let movieTag of movieTags\" style=\"margin-bottom: 10px\">\n        <div class=\"btn-group btn-group-sm\" role=\"group\" aria-label=\"...\">\n          <!--<button type=\"button\" class=\"btn btn-default\">{{movieTag.sum}}+</button>-->\n          <button type=\"button\" class=\"btn btn-default\">{{movieTag.tag}}</button>\n          <button type=\"button\" class=\"btn btn-default\" (click)=\"addMyTag(movie.mid,movieTag.tag)\"><span class=\"glyphicon glyphicon-plus\" aria-hidden=\"true\"></span></button>\n        </div>\n      </div>\n    </div>\n  </div>\n\n  <h3><span class=\"glyphicon glyphicon-film\" aria-hidden=\"true\" style=\"font-size: 20px;\"></span> 相似推荐</h3>\n  <p class=\"descri\">MovieLens guess movies same with {{movie.name}}</p>\n  <div class=\"grid grid-pad\">\n    <div class=\"row\">\n      <div class=\"col-lg-2 col-md-2\" *ngFor=\"let sameMovie of sameMovies\"><app-thumbnail [movie]=\"sameMovie\"></app-thumbnail></div>\n    </div>\n  </div>\n\n</div>\n"
+        module.exports = "<div class=\"detail\">\n\n  <div class=\"main row\">\n    <div class=\"col-md-5\">\n      <img src=\"{{imageServer}}/images/{{movie.mid}}/picture.jpg\" class=\"img-thumbnail\">\n    </div>\n    <div class=\"col-md-7\">\n      <h1 class=\"title\">{{movie.name}}</h1>\n\n      <div class=\"menu\" style=\"float: left\">\n        <div class=\"btn-group\">\n          <button type=\"button\" style=\"background-color: #FFFFFF;border: none;padding-left: 1px\" class=\"btn btn-default dropdown-toggle btn-sm\" data-toggle=\"dropdown\" aria-haspopup=\"true\" aria-expanded=\"false\">\n            <span class=\"icon-stack2\" aria-hidden=\"true\" style=\"font-size: 20px\"></span>\n          </button>\n          <ul class=\"dropdown-menu\">\n            <li><a href=\"#\">清除评分</a></li>\n          </ul>\n        </div>\n      </div>\n\n      <app-star [currentValue]=\"movie.score\" [mid]=\"movie.mid\"></app-star>\n\n      <div class=\"row\"></div>\n\n      <div class=\"row\">\n        <div class=\"col-md-4\">\n          <h4 class=\"small-title\">平均评分</h4>\n          <p>{{movie.score}} 颗星</p>\n        </div>\n\n      </div>\n\n      <div class=\"row\">\n\n        <div class=\"col-md-8\">\n          <h4 class=\"small-title\">影片类别</h4>\n          <p>{{movie.genres}}</p>\n        </div>\n      </div>\n\n    </div>\n  </div>\n\n  <div class=\"second row\">\n    <div class=\"col-md-6\">\n      <h2 style=\"margin-top: 0px;\">{{movie.descri}}</h2>\n    </div>\n    <div class=\"col-md-6\">\n      <p>{{movie.shoot}} G {{movie.timelong}}</p>\n      <h4 class=\"small-title\">影片语言</h4>\n      <p>{{movie.language}}</p>\n      <h4 class=\"small-title\">影片导演</h4>\n      <p>{{movie.directors}}</p>\n      <h4 class=\"small-title\">影片演员</h4>\n      <p>{{movie.actors}}</p>\n      <h4 class=\"small-title\">影片上映日期</h4>\n      <p>{{movie.issue}}</p>\n    </div>\n\n  </div>\n\n  <h3><span class=\"icon-pin4\" aria-hidden=\"true\" style=\"font-size: 20px;\"></span> 我的标签</h3>\n  <div class=\"row youtag\">\n    <div class=\"col-md-4\">\n      <div class=\"input-group\">\n        <input #tagname type=\"text\" class=\"form-control\" placeholder=\"Search for...\">\n        <span class=\"input-group-btn\">\n        <button class=\"btn btn-default\" type=\"button\" (click)=\"addMyTag(movie.mid,tagname.value)\"><span class=\"glyphicon glyphicon-plus\" aria-hidden=\"true\"></span></button>\n      </span>\n      </div><!-- /input-group -->\n    </div>\n  </div>\n\n  <div class=\"row\">\n    <div class=\"col-md-2\" *ngFor=\"let myTag of myTags\" style=\"margin-bottom: 10px\">\n      <div class=\"btn-group btn-group-sm\" role=\"group\" aria-label=\"...\">\n        <button type=\"button\" class=\"btn btn-default\">{{myTag.tag}}</button>\n        <button type=\"button\" class=\"btn btn-default\" (click)=\"removeMyTag(myTag.mid)\"><span class=\"glyphicon glyphicon-remove\" aria-hidden=\"true\"></span></button>\n      </div>\n    </div>\n  </div>\n\n  <h3><span class=\"glyphicon glyphicon-bullhorn\" aria-hidden=\"true\" style=\"font-size: 20px\"></span> 大家的标签</h3>\n  <div class=\"grid grid-pad\">\n    <div class=\"row\">\n      <div class=\"col-md-2\" *ngFor=\"let movieTag of movieTags\" style=\"margin-bottom: 10px\">\n        <div class=\"btn-group btn-group-sm\" role=\"group\" aria-label=\"...\">\n          <!--<button type=\"button\" class=\"btn btn-default\">{{movieTag.sum}}+</button>-->\n          <button type=\"button\" class=\"btn btn-default\">{{movieTag.tag}}</button>\n          <button type=\"button\" class=\"btn btn-default\" (click)=\"addMyTag(movie.mid,movieTag.tag)\"><span class=\"glyphicon glyphicon-plus\" aria-hidden=\"true\"></span></button>\n        </div>\n      </div>\n    </div>\n  </div>\n\n  <h3><span class=\"glyphicon glyphicon-film\" aria-hidden=\"true\" style=\"font-size: 20px;\"></span> 相似推荐</h3>\n  <p class=\"descri\">MovieLens guess movies same with {{movie.name}}</p>\n  <div class=\"grid grid-pad\">\n    <div class=\"row\">\n      <div class=\"col-lg-2 col-md-2\" *ngFor=\"let sameMovie of sameMovies\"><app-thumbnail [movie]=\"sameMovie\"></app-thumbnail></div>\n    </div>\n  </div>\n\n</div>\n"
 
         /***/
     }),
@@ -1081,7 +1081,7 @@ webpackJsonp([1], {
                     .get(__WEBPACK_IMPORTED_MODULE_6__model_constant__["a" /* constant */].BUSSINESS_SERVER_URL + '/rest/movie/newtag/' + id + '?username=' + this.loginService.user.username + '&tagname=' + name)
                     .subscribe(function (data) {
                         if (data['success'] == true) {
-                            _this.myTags.push(data['tag']);
+                            _this.myTags.push(data['data']);
                         }
                     }, function (err) {
                         console.log('Somethi,g went wrong!');
@@ -1098,10 +1098,10 @@ webpackJsonp([1], {
             MdetailComponent.prototype.getMyTags = function (id) {
                 var _this = this;
                 this.httpService
-                    .get(__WEBPACK_IMPORTED_MODULE_6__model_constant__["a" /* constant */].BUSSINESS_SERVER_URL + 'rest/movie/mytag/' + id + '?username=' + this.loginService.user.username)
+                    .get(__WEBPACK_IMPORTED_MODULE_6__model_constant__["a" /* constant */].BUSSINESS_SERVER_URL + '/rest/movie/mytag/' + id + '?username=' + this.loginService.user.username)
                     .subscribe(function (data) {
                         if (data['success'] == true) {
-                            _this.myTags = data["tags"];
+                            _this.myTags = data["data"];
                         }
                     }, function (err) {
                         console.log('Somethi,g went wrong!');
@@ -1113,7 +1113,7 @@ webpackJsonp([1], {
                     .get(__WEBPACK_IMPORTED_MODULE_6__model_constant__["a" /* constant */].BUSSINESS_SERVER_URL + '/rest/movie/tag/' + id)
                     .subscribe(function (data) {
                         if (data['success'] == true) {
-                            _this.movieTags = data['tags'];
+                            _this.movieTags = data['data'];
                         }
                     }, function (err) {
                         console.log('Somethi,g went wrong!');
@@ -1125,7 +1125,7 @@ webpackJsonp([1], {
                     .get(__WEBPACK_IMPORTED_MODULE_6__model_constant__["a" /* constant */].BUSSINESS_SERVER_URL + '/rest/movie/same/' + id + '?num=6')
                     .subscribe(function (data) {
                         if (data['success'] == true) {
-                            _this.sameMovies = data['movies'];
+                            _this.sameMovies = data['data'];
                         }
                     }, function (err) {
                         console.log('Somethi,g went wrong!');
@@ -1137,7 +1137,7 @@ webpackJsonp([1], {
                     .get(__WEBPACK_IMPORTED_MODULE_6__model_constant__["a" /* constant */].BUSSINESS_SERVER_URL + '/rest/movie/info/' + id)
                     .subscribe(function (data) {
                         if (data['success'] == true) {
-                            _this.movie = data['movie'];
+                            _this.movie = data['data'];
                         }
                     }, function (err) {
                         console.log('Somethi,g went wrong!');
@@ -1374,10 +1374,10 @@ webpackJsonp([1], {
                 this.user.password = "";
                 this.router.navigate(['/home']);*/
                 this.http
-                    .get(__WEBPACK_IMPORTED_MODULE_4__model_constant__["a" /* constant */].BUSSINESS_SERVER_URL + 'rest/users/login?username=' + user.username + '&password=' + user.password)
+                    .get(__WEBPACK_IMPORTED_MODULE_4__model_constant__["a" /* constant */].BUSSINESS_SERVER_URL + '/rest/users/login?username=' + user.username + '&password=' + user.password)
                     .subscribe(function (data) {
                         if (data['success'] == true) {
-                            _this.user = data['user'];
+                            _this.user = data['data'];
                             _this.router.navigate(['/home']);
                         }
                         _this.data = data;
@@ -1659,7 +1659,7 @@ webpackJsonp([1], {
                     .get(__WEBPACK_IMPORTED_MODULE_3__model_constant__["a" /* constant */].BUSSINESS_SERVER_URL + '/rest/movie/myrate?username=' + this.loginService.user.username)
                     .subscribe(function (data) {
                         if (data['success'] == true) {
-                            _this.tags = data['tags'];
+                            _this.tags = data['data'];
                         }
                     }, function (err) {
                         console.log('Somethi,g went wrong!');
@@ -1704,7 +1704,7 @@ webpackJsonp([1], {
     /***/ "../../../../../src/app/thumbnail/thumbnail.component.html":
     /***/ (function (module, exports) {
 
-        module.exports = "<div class=\"thumbnail1\">\n  <div class=\"top\">\n    <div>\n      <div class=\"row\" style=\"margin: 1px\">\n        <div class=\"title\">\n          <a routerLink=\"/movies/{{movie.mid}}\" routerLinkActive=\"active\">{{movie.name}}</a>\n        </div>\n        <div class=\"action\">\n          <span class=\"icon-uniE18F\" aria-hidden=\"true\"></span>\n          <!--<div class=\"btn-group\" role=\"group\">\n            <button type=\"button\" class=\"btn btn-default btn-xs\" style=\"margin-left: 1px;border-color:#FFFFFF\">\n              <span class=\"icon-pin4\" aria-hidden=\"true\"></span>\n            </button>\n            <button type=\"button\" class=\"btn btn-default btn-xs\" style=\"border-color:#FFFFFF\" >\n              <span class=\"icon-uniE281\" aria-hidden=\"true\"></span>\n            </button>\n          </div>-->\n        </div>\n      </div>\n\n      <div class=\"release row\" style=\"margin: 0px;\">\n        <p style=\"font-size: 12px;margin-bottom: 2px;margin-top: 2px\">{{movie.shoot}}年 | {{movie.timelong}}</p>\n      </div>\n    </div>\n    <div (mouseover)=\"hover()\" (mouseleave)=\"leave()\" class=\"row imgcontext\" style=\"margin: -2px;\">\n      <img src=\"{{imageServer}}images/{{movie.mid}}/poster.jpg\">\n      <div class=\"detail\" [hidden]=\"!detail\">\n        <div class=\"movie-card-under-image\">\n          <p>genres: {{movie.genres}}</p>\n        </div>\n\n        <div class=\"trailer-play-title\">\n          <span class=\"icon-uniE18E\"></span>\n        </div>\n\n      </div>\n\n    </div>\n  </div>\n\n\n\n  <div class=\"row\" style=\"margin: 0px;\">\n    <div class=\"menu\">\n      <div class=\"btn-group\">\n        <button type=\"button\" style=\"background-color: #F1F1F1;border: none;padding-left: 1px\" class=\"btn btn-default dropdown-toggle btn-sm\" data-toggle=\"dropdown\" aria-haspopup=\"true\" aria-expanded=\"false\">\n          <span class=\"icon-stack2\" aria-hidden=\"true\" style=\"font-size: 20px\"></span>\n        </button>\n        <ul class=\"dropdown-menu\">\n          <li><a href=\"#\">清除评分</a></li>\n        </ul>\n      </div>\n    </div>\n\n    <div class=\"star\">\n      <app-star [currentValue]=\"movie.score\" [mid]=\"movie.mid\"></app-star>\n    </div>\n  </div>\n\n</div>\n"
+        module.exports = "<div class=\"thumbnail1\">\n  <div class=\"top\">\n    <div>\n      <div class=\"row\" style=\"margin: 1px\">\n        <div class=\"title\">\n          <a routerLink=\"/movies/{{movie.mid}}\" routerLinkActive=\"active\">{{movie.name}}</a>\n        </div>\n        <div class=\"action\">\n          <span class=\"icon-uniE18F\" aria-hidden=\"true\"></span>\n          <!--<div class=\"btn-group\" role=\"group\">\n            <button type=\"button\" class=\"btn btn-default btn-xs\" style=\"margin-left: 1px;border-color:#FFFFFF\">\n              <span class=\"icon-pin4\" aria-hidden=\"true\"></span>\n            </button>\n            <button type=\"button\" class=\"btn btn-default btn-xs\" style=\"border-color:#FFFFFF\" >\n              <span class=\"icon-uniE281\" aria-hidden=\"true\"></span>\n            </button>\n          </div>-->\n        </div>\n      </div>\n\n      <div class=\"release row\" style=\"margin: 0px;\">\n        <p style=\"font-size: 12px;margin-bottom: 2px;margin-top: 2px\">{{movie.shoot}}年 | {{movie.timelong}}</p>\n      </div>\n    </div>\n    <div (mouseover)=\"hover()\" (mouseleave)=\"leave()\" class=\"row imgcontext\" style=\"margin: -2px;\">\n      <img src=\"{{imageServer}}/images/{{movie.mid}}/poster.jpg\">\n      <div class=\"detail\" [hidden]=\"!detail\">\n        <div class=\"movie-card-under-image\">\n          <p>genres: {{movie.genres}}</p>\n        </div>\n\n        <div class=\"trailer-play-title\">\n          <span class=\"icon-uniE18E\"></span>\n        </div>\n\n      </div>\n\n    </div>\n  </div>\n\n\n\n  <div class=\"row\" style=\"margin: 0px;\">\n    <div class=\"menu\">\n      <div class=\"btn-group\">\n        <button type=\"button\" style=\"background-color: #F1F1F1;border: none;padding-left: 1px\" class=\"btn btn-default dropdown-toggle btn-sm\" data-toggle=\"dropdown\" aria-haspopup=\"true\" aria-expanded=\"false\">\n          <span class=\"icon-stack2\" aria-hidden=\"true\" style=\"font-size: 20px\"></span>\n        </button>\n        <ul class=\"dropdown-menu\">\n          <li><a href=\"#\">清除评分</a></li>\n        </ul>\n      </div>\n    </div>\n\n    <div class=\"star\">\n      <app-star [currentValue]=\"movie.score\" [mid]=\"movie.mid\"></app-star>\n    </div>\n  </div>\n\n</div>\n"
 
         /***/
     }),

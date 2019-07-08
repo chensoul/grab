@@ -1,4 +1,4 @@
-package com.javachen.grab.model.recom;
+package com.javachen.grab.model;
 
 import lombok.Data;
 
