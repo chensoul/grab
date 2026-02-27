@@ -28,7 +28,7 @@
         <elasticsearch.version>6.8.23</elasticsearch.version>
         <kafka.version>3.9.2</kafka.version>
         <spark.version>2.4.8</spark.version>
-        <scala.version>2.13.16</scala.version>
+        <scala.version>3.8.2</scala.version>
         <jblas.version>1.2.1</jblas.version>
     </properties>
 </project>
