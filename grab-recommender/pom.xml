@@ -87,7 +87,7 @@
                 <plugin>
                     <groupId>net.alchim31.maven</groupId>
                     <artifactId>scala-maven-plugin</artifactId>
-                    <version>4.9.2</version>
+                    <version>4.9.9</version>
                     <executions>
                         <!--绑定到maven的编译阶段-->
                         <execution>
